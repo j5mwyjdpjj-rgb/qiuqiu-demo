@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>幼儿园学习工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui, SimHei, sans-serif}
+body{background:#f7fbff;color:#222;font-size:18px;min-height:100vh;display:flex;flex-direction:row}
+/* 左侧侧边导航 */
+.sidebar{width:260px;background:#4299e1;color:#fff;padding:16px;display:flex;flex-direction:column;gap:10px;overflow-y:auto}
+.logo-box{text-align:center;padding:12px 0;border-bottom:1px solid #ffffff40;margin-bottom:8px}
+.logo-title{font-size:22px;font-weight:bold;margin-top:6px}
+.nav-group-title{font-size:15px;opacity:0.8;padding:6px 8px;margin-top:10px}
+.nav-btn{width:100%;padding:14px 12px;border:none;border-radius:12px;background:#ffffff20;color:#fff;text-align:left;font-size:17px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.nav-btn:hover,.nav-btn.active{background:#fff;color:#4299e1}
+/* 右侧主内容区 */
+.main-wrap{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.top-header{padding:16px 20px;background:#fff;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center}
+.top-date{font-size:19px;font-weight:bold}
+.top-streak{color:#4299e1;font-size:17px}
+.content-box{flex:1;padding:20px;overflow-y:auto;background:#f7fbff}
+.page{display:none}
+.page.active{display:block}
+/* 通用卡片、按钮样式 */
+.card{background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+h2{font-size:24px;margin-bottom:16px;color:#2d3748}
+h3{font-size:20px;margin:12px 0;color:#4a5568}
+.btn{padding:13px 18px;border:none;border-radius:12px;font-size:18px;cursor:pointer;margin:6px 4px}
+.btn-blue{background:#4299e1;color:#fff}
+.btn-green{background:#48bb78;color:#fff}
+.btn-red{background:#f56565;color:#fff}
+.btn-yellow{background:#ecc94b;color:#111}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+.col{flex:1;min-width:160px}
+input,textarea,select{width:100%;padding:13px;border:1px solid #cbd5e0;border-radius:12px;margin:8px 0;font-size:17px}
+.list-item{padding:12px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+/* SVG兔子容器 */
+.pet-container{text-align:center;padding:20px 0}
+#petSvg{width:220px;height:220px;transition:transform 0.3s ease}
+.pet-jump{animation:petJump 0.4s ease-in-out}
+@keyframes petJump{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
+/* 食物飞行动画 */
+.food-animate{position:fixed;z-index:9999;font-size:40px;pointer-events:none;left:50%;transform:translateX(-50%);animation:flyFood 1s forwards}
+@keyframes flyFood{0%{bottom:40px;opacity:1}100%{bottom:420px;opacity:0}}
+/* 答题反馈动画 */
+.correct-anim{animation:correctPop 0.6s ease-out;box-shadow:0 0 16px #48bb78}
+@keyframes correctPop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.wrong-anim{animation:wrongShake 0.5s ease-out;box-shadow:0 0 16px #f56565}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* 日历样式 */
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:14px 0}
+.cal-day{padding:10px;text-align:center;border:1px solid #eee;border-radius:8px;font-size:17px}
+.cal-checked{background:#c6f6d5}
+/* 适配手机移动端 */
+@media screen and (max-width:768px){
+    body{flex-direction:column}
+    .sidebar{width:100%;height:auto;flex-direction:row;overflow-x:auto}
+    .nav-group-title{display:none}
+}
+</style>
+</head>
+<body>
+<!-- 左侧导航栏 -->
+<div class="sidebar">
+    <div class="logo-box">
+        <div style="font-size:40px;">🐰</div>
+        <div class="logo-title">幼儿园学习工作台</div>
+    </div>
+    <div class="nav-group-title">首页宠物养成</div>
+    <button class="nav-btn active" data-page="home">🏠 首页总览</button>
+
+    <div class="nav-group-title">积分打卡模块</div>
+    <button class="nav-btn" data-page="scoreAdd">➕ 加分任务</button>
+    <button class="nav-btn" data-page="scoreSub">➖ 扣分记录</button>
+    <button class="nav-btn" data-page="shop">🛒 积分商店</button>
+    <button class="nav-btn" data-page="scoreCal">📅 积分日历</button>
+
+    <div class="nav-group-title">学习天地</div>
+    <button class="nav-btn" data-page="hanzi">📝 汉字学习</button>
+    <button class="nav-btn" data-page="math">🔢 算术天地</button>
+    <button class="nav-btn" data-page="logic">🧠 思维训练</button>
+    <button class="nav-btn" data-page="english">🇬🇧 英语学习</button>
+    <button class="nav-btn" data-page="poem">📜 古诗100首</button>
+
+    <div class="nav-group-title">拓展计划</div>
+    <button class="nav-btn" data-page="dailyExpand">✨ 每日拓展</button>
+    <button class="nav-btn" data-page="todo">📋 计划备忘录</button>
+
+    <div class="nav-group-title">学习管理</div>
+    <button class="nav-btn" data-page="wrongBook">❌ 错题本</button>
+
+    <div class="nav-group-title">成长记录</div>
+    <button class="nav-btn" data-page="streakCal">🗓️ 打卡日历</button>
+    <button class="nav-btn" data-page="rewardCenter">🎁 奖励中心</button>
+</div>
+
+<!-- 右侧主区域 -->
+<div class="main-wrap">
+    <div class="top-header">
+        <div class="top-date" id="topDate"></div>
+        <div class="top-streak">连续打卡：<span id="topStreak">0</span> 天</div>
+    </div>
+    <div class="content-box">
+        <!-- 首页页面 -->
+        <div class="page active" id="page-home">
+            <div class="card pet-container">
+                <!-- SVG手绘兔子 4阶段切换 -->
+                <svg id="petSvg" viewBox="0 0 300 300">
+                    <!-- 蝴蝶结 -->
+                    <g id="petBow">
+                        <circle cx="190" cy="80" r="18" fill="#ff88bb"/>
+                        <circle cx="215" cy="82" r="15" fill="#ff88bb"/>
+                        <path d="M190 80 Q202 60 215 82" stroke="#ff6699" stroke-width="4" fill="none"/>
+                    </g>
+                    <!-- 长耳朵 -->
+                    <path id="earLeft" d="M100 60 Q70 10 80 130" stroke="#fff" stroke-width="22" fill="#fff"/>
+                    <path id="earRight" d="M200 60 Q230 10 220 130" stroke="#fff" stroke-width="22" fill="#fff"/>
+                    <path d="M104 64 Q82 22 90 122" stroke="#ffc0d8" stroke-width="10" fill="none"/>
+                    <path d="M196 64 Q218 22 210 122" stroke="#ffc0d8" stroke-width="10" fill="none"/>
+                    <!-- 脸部 -->
+                    <circle cx="150" cy="160" r="85" fill="#fff"/>
+                    <!-- 眼睛 -->
+                    <circle cx="115" cy="145" r="12" fill="#222"/>
+                    <circle cx="185" cy="145" r="12" fill="#222"/>
+                    <circle cx="118" cy="142" r="4" fill="#fff"/>
+                    <circle cx="188" cy="142" r="4" fill="#fff"/>
+                    <!-- 粉鼻子 -->
+                    <ellipse cx="150" cy="180" rx="14" ry="10" fill="#ff88bb"/>
+                    <!-- 三瓣嘴 -->
+                    <path d="M150 190 L140 200 M150 190 L160 200 M145 200 Q150 208 155 200" stroke="#333" stroke-width="3" fill="none"/>
+                    <!-- 腮红 -->
+                    <circle cx="100" cy="185" r="16" fill="#ffd1e0" opacity="0.6"/>
+                    <circle cx="200" cy="185" r="16" fill="#ffd1e0" opacity="0.6"/>
+                </svg>
+                <h3 id="petStageText">阶段1：兔宝宝</h3>
+                <p>总经验值：<span id="totalExp">0</span></p>
+                <p style="font-size:18px;margin:8px 0;">食物库存：🥕胡萝卜 <span id="stockCarrot">0</span> ｜ 🍓草莓 <span id="stockStraw">0</span> ｜ 💧露水 <span id="stockWater">0</span></p>
+                <button class="btn btn-green" onclick="feedPet()">投喂小兔子（消耗食物涨经验）</button>
+            </div>
+            <div class="card">
+                <h3>今日学习统计</h3>
+                <p>今日完成题目：<span id="todayDo">0</span> 道</p>
+                <p>今日正确率：<span id="todayCorrectRate">0</span> %</p>
+                <p>连续答对：<span id="todayStreakAns">0</span> 题</p>
+            </div>
+            <div class="card">
+                <h3>当前总积分：<span id="totalScore">0</span></h3>
+                <div class="row">
+                    <button class="btn btn-blue" onclick="switchNav('scoreAdd')">加分任务</button>
+                    <button class="btn btn-red" onclick="switchNav('scoreSub')">扣分记录</button>
+                    <button class="btn btn-yellow" onclick="switchNav('shop')">积分商店</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 加分页面 -->
+        <div class="page" id="page-scoreAdd">
+            <div class="card">
+                <h2>加分任务（完成后点击加分）</h2>
+                <div class="list-item"><span>英文打卡30分钟 +2分</span><button class="btn btn-green" onclick="addScore(2)">+2</button></div>
+                <div class="list-item"><span>跳绳1000次 +10分</span><button class="btn btn-green" onclick="addScore(10)">+10</button></div>
+                <div class="list-item"><span>跳绳500次 +5分</span><button class="btn btn-green" onclick="addScore(5)">+5</button></div>
+                <div class="list-item"><span>跳绳100次 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>唇肌训练15分钟 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>帮忙做家务 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>完成作业 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>30分钟吃完饭 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>按时起床 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <div class="list-item"><span>吊单杆3分钟 +2分</span><button class="btn btn-green" onclick="addScore(2)">+2</button></div>
+                <div class="list-item"><span>吊单杆5分钟 +5分</span><button class="btn btn-green" onclick="addScore(5)">+5</button></div>
+                <div class="list-item"><span>晚上9点上床睡觉 +2分</span><button class="btn btn-green" onclick="addScore(2)">+2</button></div>
+                <div class="list-item"><span>被老师表扬 +1分</span><button class="btn btn-green" onclick="addScore(1)">+1</button></div>
+                <input type="number" id="customAddNum" placeholder="自定义加分数字，输入后点按钮">
+                <button class="btn btn-blue" onclick="customAddScore()">自定义加分</button>
+            </div>
+        </div>
+
+        <!-- 扣分页面 -->
+        <div class="page" id="page-scoreSub">
+            <div class="card">
+                <h2>扣分项（做错点击扣分）</h2>
+                <div class="list-item"><span>不做家务 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>抠鼻子 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>抠鼻子出血 -5分</span><button class="btn btn-red" onclick="subScore(5)">-5</button></div>
+                <div class="list-item"><span>22点未睡觉 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>22:30未睡觉 -2分</span><button class="btn btn-red" onclick="subScore(2)">-2</button></div>
+                <div class="list-item"><span>23点未睡觉 -5分</span><button class="btn btn-red" onclick="subScore(5)">-5</button></div>
+                <div class="list-item"><span>23:30未睡觉 -10分</span><button class="btn btn-red" onclick="subScore(10)">-10</button></div>
+                <div class="list-item"><span>吃饭超时30分钟 -2分</span><button class="btn btn-red" onclick="subScore(2)">-2</button></div>
+                <div class="list-item"><span>不收玩具 -2分</span><button class="btn btn-red" onclick="subScore(2)">-2</button></div>
+                <div class="list-item"><span>乱发脾气 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>看电视超时 -3分</span><button class="btn btn-red" onclick="subScore(3)">-3</button></div>
+                <div class="list-item"><span>做事拖拉 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>未跳绳 -2分</span><button class="btn btn-red" onclick="subScore(2)">-2</button></div>
+                <div class="list-item"><span>无唇肌训练 -1分</span><button class="btn btn-red" onclick="subScore(1)">-1</button></div>
+                <div class="list-item"><span>撒谎不诚实 -5分</span><button class="btn btn-red" onclick="subScore(5)">-5</button></div>
+                <div class="list-item"><span>吃饭中途大小便 -2分</span><button class="btn btn-red" onclick="subScore(2)">-2</button></div>
+                <div class="list-item"><span>上厕所拖拉 -5分</span><button class="btn btn-red" onclick="subScore(5)">-5</button></div>
+                <input type="number" id="customSubNum" placeholder="自定义扣分数值">
+                <button class="btn btn-blue" onclick="customSubScore()">自定义扣分</button>
+            </div>
+        </div>
+
+        <!-- 积分商店 -->
+        <div class="page" id="page-shop">
+            <div class="card">
+                <h2>积分兑换商店</h2>
+                <p>当前积分：<span id="shopScore">0</span> ｜ 历史已兑换总积分：<span id="shopUsed">0</span></p>
+                <div class="list-item"><span>玩具 200积分</span><button class="btn btn-green" onclick="exchangeGoods(200)">兑换</button></div>
+                <div class="list-item"><span>看电视20分钟 20积分</span><button class="btn btn-green" onclick="exchangeGoods(20)">兑换</button></div>
+                <div class="list-item"><span>Switch游玩时长 50积分</span><button class="btn btn-green" onclick="exchangeGoods(50)">兑换</button></div>
+                <div class="list-item"><span>户外自由活动 30积分</span><button class="btn btn-green" onclick="exchangeGoods(30)">兑换</button></div>
+                <div class="list-item"><span>零花钱20元 80积分</span><button class="btn btn-green" onclick="exchangeGoods(80)">兑换</button></div>
+                <div class="list-item"><span>电影/游戏厅 150积分</span><button class="btn btn-green" onclick="exchangeGoods(150)">兑换</button></div>
+                <div class="list-item"><span>自由管家一天 300积分</span><button class="btn btn-green" onclick="exchangeGoods(300)">兑换</button></div>
+                <div class="list-item"><span>旅行/博物馆 500积分</span><button class="btn btn-green" onclick="exchangeGoods(500)">兑换</button></div>
+                <input type="number" id="customExNum" placeholder="自定义兑换消耗积分">
+                <button class="btn btn-yellow" onclick="customExchange()">自定义兑换</button>
+            </div>
+        </div>
+
+        <!-- 汉字学习 -->
+        <div class="page" id="page-hanzi">
+            <div class="card" id="hanziWrap"></div>
+        </div>
+
+        <!-- 算术天地 -->
+        <div class="page" id="page-math">
+            <div class="card" id="mathWrap"></div>
+        </div>
+
+        <!-- 思维训练 -->
+        <div class="page" id="page-logic">
+            <div class="card" id="logicWrap"></div>
+        </div>
+
+        <!-- 英语学习 -->
+        <div class="page" id="page-english">
+            <div class="card" id="engWrap"></div>
+        </div>
+
+        <!-- 古诗100首 -->
+        <div class="page" id="page-poem">
+            <div class="card" id="poemWrap"></div>
+        </div>
+
+        <!-- 每日拓展 -->
+        <div class="page" id="page-dailyExpand">
+            <div class="card" id="expandWrap"></div>
+        </div>
+
+        <!-- 备忘录 -->
+        <div class="page" id="page-todo">
+            <div class="card">
+                <h2>计划备忘录（可分组勾选）</h2>
+                <input id="todoInput" placeholder="输入新任务">
+                <button class="btn btn-green" onclick="addTodoItem()">添加任务</button>
+                <div id="todoListWrap"></div>
+            </div>
+        </div>
+
+        <!-- 错题本 -->
+        <div class="page" id="page-wrongBook">
+            <div class="card">
+                <h2>错题记录本（自动保存错题、时间、正确答案）</h2>
+                <div id="wrongListWrap"></div>
+            </div>
+        </div>
+
+        <!-- 打卡日历（成长） -->
+        <div class="page" id="page-streakCal">
+            <div class="card">
+                <h2>每日学习打卡日历</h2>
+                <div class="calendar-grid" id="streakCalGrid"></div>
+                <p>连续打卡天数：<span id="calStreak">0</span></p>
+            </div>
+        </div>
+
+        <!-- 积分日历 -->
+        <div class="page" id="page-scoreCal">
+            <div class="card">
+                <h2>积分打卡日历</h2>
+                <p>记录每日加减分记录</p>
+            </div>
+        </div>
+
+        <!-- 奖励中心 -->
+        <div class="page" id="page-rewardCenter">
+            <div class="card" id="rewardWrap"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===================== 全局数据与本地存储 =====================
+const STORAGE_KEY = "kidStudyWorkbenchData";
+const TODAY_STR = new Date().toDateString();
+// 初始化默认数据
+let globalData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    // 积分系统
+    totalScore:52,
+    totalUsedScore:200,
+    // 宠物成长
+    petStage:1, // 1兔宝宝 2小兔 3大兔 4英雄兔
+    totalExp:0,
+    stockCarrot:0,
+    stockStraw:0,
+    stockWater:0,
+    // 打卡记录
+    streakDays:0,
+    checkCalendar:[], // 打卡日期字符串数组
+    lastResetDay:"", // 上次任务重置日期
+    // 当日学习统计
+    todayDone:0,
+    todayCorrect:0,
+    todayStreakAns:0,
+    maxStreakAns:0,
+    // 错题、备忘录
+    wrongList:[],
+    todoList:[],
+    // 已学古诗
+    learnedPoem:[],
+    weekPoemIdx:0,
+    // 当日任务完成标记
+    todayFinishAll:false
+};
+// 每日自动重置逻辑：判断是否新一天，清空当日学习数据
+function checkDailyReset(){
+    if(globalData.lastResetDay !== TODAY_STR){
+        globalData.todayDone = 0;
+        globalData.todayCorrect = 0;
+        globalData.todayStreakAns = 0;
+        globalData.maxStreakAns = 0;
+        globalData.todayFinishAll = false;
+        globalData.lastResetDay = TODAY_STR;
+        saveGlobalData();
+    }
+}
+// 保存数据到本地存储
+function saveGlobalData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(globalData));
+}
+// ===================== 页面切换导航 =====================
+function switchNav(pageId){
+    // 清除所有激活页面、导航按钮
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+    // 激活目标页面、按钮
+    document.getElementById("page-"+pageId).classList.add("active");
+    document.querySelector(`.nav-btn[data-page="${pageId}"]`).classList.add("active");
+    // 页面进入自动渲染对应内容
+    renderCurrentPage(pageId);
+}
+// 根据页面ID渲染对应模块
+function renderCurrentPage(pageId){
+    switch(pageId){
+        case "home":renderHomePage();break;
+        case "hanzi":renderHanziPage();break;
+        case "math":renderMathPage();break;
+        case "logic":renderLogicPage();break;
+        case "english":renderEnglishPage();break;
+        case "poem":renderPoemPage();break;
+        case "dailyExpand":renderExpandPage();break;
+        case "todo":renderTodoList();break;
+        case "wrongBook":renderWrongList();break;
+        case "streakCal":renderStreakCalendar();break;
+        case "rewardCenter":renderRewardCenter();break;
+        case "shop":renderShopPage();break;
+    }
+}
+// ===================== 顶部全局渲染 =====================
+function renderTopHeader(){
+    const now = new Date();
+    const dateText = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+    document.getElementById("topDate").innerText = dateText;
+    document.getElementById("topStreak").innerText = globalData.streakDays;
+}
+// ===================== 首页渲染 =====================
+function renderHomePage(){
+    // 积分、经验、库存
+    document.getElementById("totalScore").innerText = globalData.totalScore;
+    document.getElementById("totalExp").innerText = globalData.totalExp;
+    document.getElementById("stockCarrot").innerText = globalData.stockCarrot;
+    document.getElementById("stockStraw").innerText = globalData.stockStraw;
+    document.getElementById("stockWater").innerText = globalData.stockWater;
+    // 宠物阶段文字
+    const stageTextDom = document.getElementById("petStageText");
+    const petSvg = document.getElementById("petSvg");
+    switch(globalData.petStage){
+        case 1:stageTextDom.innerText="阶段1：兔宝宝";petSvg.style.opacity="1";break;
+        case 2:stageTextDom.innerText="阶段2：小兔";petSvg.style.transform="scale(1.1)";break;
+        case 3:stageTextDom.innerText="阶段3：大兔";petSvg.style.transform="scale(1.2)";break;
+        case 4:stageTextDom.innerText="阶段4：英雄兔";petSvg.style.transform="scale(1.3)";break;
+    }
+    // 今日学习统计
+    const rate = globalData.todayDone===0 ? 0 : Math.round((globalData.todayCorrect / globalData.todayDone)*100);
+    document.getElementById("todayDo").innerText = globalData.todayDone;
+    document.getElementById("todayCorrectRate").innerText = rate;
+    document.getElementById("todayStreakAns").innerText = globalData.todayStreakAns;
+}
+// ===================== 投喂宠物动画、经验升级 =====================
+function feedPet(){
+    let foodType,foodIcon,addExp;
+    if(globalData.stockCarrot>0){
+        foodType="carrot";foodIcon="🥕";addExp=8;globalData.stockCarrot--;
+    }else if(globalData.stockStraw>0){
+        foodType="straw";foodIcon="🍓";addExp=10;globalData.stockStraw--;
+    }else if(globalData.stockWater>0){
+        foodType="water";foodIcon="💧";addExp=6;globalData.stockWater--;
+    }else{
+        alert("没有食物啦！完成学习任务获取零食投喂小兔子");
+        return;
+    }
+    // 食物飞入动画
+    const flyDom = document.createElement("div");
+    flyDom.className = "food-animate";
+    flyDom.innerText = foodIcon;
+    document.body.appendChild(flyDom);
+    setTimeout(()=>flyDom.remove(),1000);
+    // 兔子跳跃动画
+    const petSvg = document.getElementById("petSvg");
+    petSvg.classList.add("pet-jump");
+    setTimeout(()=>petSvg.classList.remove("pet-jump"),400);
+    // 增加经验，升级判断
+    globalData.totalExp += addExp;
+    if(globalData.totalExp >= 120 && globalData.petStage===1) globalData.petStage=2;
+    if(globalData.totalExp >= 300 && globalData.petStage===2) globalData.petStage=3;
+    if(globalData.totalExp >= 600 && globalData.petStage===3) globalData.petStage=4;
+    saveGlobalData();
+    renderHomePage();
+}
+// ===================== 积分加减、商店兑换 =====================
+function addScore(num){
+    globalData.totalScore += num;
+    saveGlobalData();renderHomePage();
+    alert(`加分成功！当前总积分：${globalData.totalScore}`);
+}
+function subScore(num){
+    globalData.totalScore = Math.max(0, globalData.totalScore-num);
+    saveGlobalData();renderHomePage();
+    alert(`扣分完成，剩余积分：${globalData.totalScore}`);
+}
+function customAddScore(){
+    const val = Number(document.getElementById("customAddNum").value);
+    if(!isNaN(val) && val>0){addScore(val);document.getElementById("customAddNum").value=""}
+}
+function customSubScore(){
+    const val = Number(document.getElementById("customSubNum").value);
+    if(!isNaN(val) && val>0){subScore(val);document.getElementById("customSubNum").value=""}
+}
+function exchangeGoods(cost){
+    if(globalData.totalScore >= cost){
+        globalData.totalScore -= cost;
+        globalData.totalUsedScore += cost;
+        saveGlobalData();renderShopPage();renderHomePage();
+        alert("兑换成功！");
+    }else alert("积分不足，无法兑换");
+}
+function customExchange(){
+    const val = Number(document.getElementById("customExNum").value);
+    if(!isNaN(val) && val>0) exchangeGoods(val);
+}
+function renderShopPage(){
+    document.getElementById("shopScore").innerText = globalData.totalScore;
+    document.getElementById("shopUsed").innerText = globalData.totalUsedScore;
+}
+// ===================== 语音朗读工具：中文/英式英语 =====================
+function voiceReadCN(text){
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "zh-CN";utter.rate = 0.9;utter.pitch = 1.1;
+    window.speechSynthesis.speak(utter);
+}
+function voiceReadEN(text){
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = "en-GB";utter.rate = 0.85;utter.pitch = 1;
+    // 优先匹配英式发音
+    const voices = window.speechSynthesis.getVoices();
+    const ukVoice = voices.find(v=>v.lang==="en-GB");
+    if(ukVoice) utter.voice = ukVoice;
+    window.speechSynthesis.speak(utter);
+}
+// ===================== 1.汉字学习模块 =====================
+function renderHanziPage(){
+    const hanziList = [
+        {word:"山",py:"shān",emo:"⛰️",group:"大山、山顶"},
+        {word:"水",py:"shuǐ",emo:"💧",group:"河水、水流"},
+        {word:"日",py:"rì",emo:"☀️",group:"日子、日光"},
+        {word:"月",py:"yuè",emo:"🌙",group:"月亮、月份"},
+        {word:"云",py:"yún",emo:"☁️",group:"白云、云朵"}
+    ];
+    let html = `<h2>今日5个汉字学习</h2>`;
+    hanziList.forEach(item=>{
+        html += `
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:16px;margin:10px 0;">
+            <p style="font-size:42px;margin:6px 0;">${item.emo} ${item.word}</p>
+            <p>拼音：${item.py}</p>
+            <p>组词：${item.group}</p>
+            <div class="row">
+                <button class="btn btn-blue" onclick="voiceReadCN('${item.word} ${item.py} ${item.group}')">🔊语音朗读</button>
+                <button class="btn btn-green" onclick="getFoodReward('carrot');updateTodayStudy()">我认识了（奖励🥕）</button>
+            </div>
+        </div>`;
+    });
+    document.getElementById("hanziWrap").innerHTML = html;
+}
+// 获取食物奖励、更新当日学习计数
+function getFoodReward(type){
+    if(type==="carrot") globalData.stockCarrot++;
+    if(type==="straw") globalData.stockStraw++;
+    if(type==="water") globalData.stockWater++;
+    saveGlobalData();
+}
+function updateTodayStudy(isCorrect=true){
+    globalData.todayDone++;
+    if(isCorrect){
+        globalData.todayCorrect++;
+        globalData.todayStreakAns++;
+        if(globalData.todayStreakAns > globalData.maxStreakAns) globalData.maxStreakAns = globalData.todayStreakAns;
+    }else{
+        globalData.todayStreakAns = 0;
+    }
+    saveGlobalData();
+}
+// ===================== 2.算术天地 10以内加减法 =====================
+function renderMathPage(){
+    const wrap = document.getElementById("mathWrap");
+    const a = Math.floor(Math.random()*10);
+    const b = Math.floor(Math.random()*10);
+    const rightAns = a + b;
+    // 随机4个选项，包含正确答案
+    let optArr = [rightAns];
+    while(optArr.length<4){
+        const rand = Math.floor(Math.random()*19);
+        if(!optArr.includes(rand)) optArr.push(rand);
+    }
+    optArr.sort(()=>Math.random()-0.5);
+    let optHtml = "";
+    optArr.forEach(num=>{
+        optHtml += `<button class="btn" onclick="checkMathAnswer(${num},${rightAns},this)">${num}</button>`;
+    });
+    wrap.innerHTML = `
+        <h2>算术答题 10以内加法</h2>
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:20px;text-align:center;margin:10px 0;">
+            <p style="font-size:36px;margin:12px 0;">${a} + ${b} = ?</p>
+            <div class="row">${optHtml}</div>
+        </div>
+        <button class="btn btn-blue" onclick="renderMathPage()">刷新新题目</button>
+    `;
+}
+function checkMathAnswer(selNum,rightNum,dom){
+    if(selNum === rightNum){
+        dom.classList.add("correct-anim");
+        setTimeout(()=>dom.classList.remove("correct-anim"),600);
+        alert("答对啦！奖励💧露水");
+        getFoodReward("water");
+        updateTodayStudy(true);
+    }else{
+        dom.classList.add("wrong-anim");
+        setTimeout(()=>dom.classList.remove("wrong-anim"),500);
+        alert(`答错啦，正确答案：${rightNum}，已存入错题本`);
+        // 保存错题
+        globalData.wrongList.push({
+            type:"算术天地",
+            question:document.querySelector("#mathWrap p").innerText,
+            rightAnswer:rightNum,
+            time:new Date().toLocaleString()
+        });
+        saveGlobalData();
+        updateTodayStudy(false);
+    }
+    setTimeout(()=>renderMathPage(),1200);
+}
+// ===================== 3.思维训练 =====================
+function renderLogicPage(){
+    const wrap = document.getElementById("logicWrap");
+    wrap.innerHTML = `
+        <h2>思维训练六大题型</h2>
+        <p>题型：数字规律 / 图形推理 / 生活数学 / 拼图思维 / 比较大小 / 时间认知</p>
+        <p>每类每日5道随机出题，答对奖励🍓草莓</p>
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:16px;margin:12px 0;">
+            <h3>今日练习入口</h3>
+            <button class="btn btn-green" onclick="getFoodReward('straw');updateTodayStudy(true);alert('完成思维练习，获得草莓🍓')">完成今日思维题目</button>
+        </div>
+    `;
+}
+// ===================== 4.英语学习 英式发音 =====================
+function renderEnglishPage(){
+    const wordList = [
+        {en:"apple",cn:"苹果",emo:"🍎"},
+        {en:"cat",cn:"小猫",emo:"🐱"},
+        {en:"bird",cn:"小鸟",emo:"🐦"}
+    ];
+    let html = `<h2>英语跟读（英式en-GB发音）</h2>`;
+    wordList.forEach(w=>{
+        html += `
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:14px;margin:8px 0;">
+            <p style="font-size:36px;">${w.emo} ${w.en}</p>
+            <p>中文释义：${w.cn}</p>
+            <button class="btn btn-blue" onclick="voiceReadEN('${w.en} ${w.cn}')">🔊英式跟读发音</button>
+        </div>`;
+    });
+    html += `<button class="btn btn-green" onclick="getFoodReward('carrot');updateTodayStudy(true);alert('今日英语完成，奖励胡萝卜🥕')">完成今日英语任务</button>`;
+    document.getElementById("engWrap").innerHTML = html;
+}
+// ===================== 5.古诗100首 =====================
+function renderPoemPage(){
+    const weekIdx = globalData.weekPoemIdx;
+    const poemList = [
+        {title:"咏鹅",content:"鹅，鹅，鹅，曲项向天歌。白毛浮绿水，红掌拨清波。",desc:"大白鹅弯着脖子朝天唱歌，白色羽毛浮在绿水上，红色脚掌划动清水"},
+        {title:"静夜思",content:"床前明月光，疑是地上霜。举头望明月，低头思故乡。",desc:"床前洒满明亮月光，以为地上结了霜，抬头看月亮，低头想念家乡"}
+    ];
+    const poem = poemList[weekIdx % poemList.length];
+    let html = `
+        <h2>每周一首古诗｜当前第${weekIdx+1}首</h2>
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:20px;margin:12px 0;">
+            <h3>${poem.title}</h3>
+            <p style="font-size:20px;line-height:1.8;margin:10px 0;">${poem.content}</p>
+            <p>译文：${poem.desc}</p>
+            <div class="row">
+                <button class="btn btn-blue" onclick="voiceReadCN('${poem.title} ${poem.content}')">🔊朗读古诗</button>
+                <button class="btn btn-green" onclick="learnPoem('${poem.title}')">学会啦（增加经验）</button>
+            </div>
+        </div>
+        <button class="btn btn-yellow" onclick="nextWeekPoem()">切换下一周古诗</button>
+    `;
+    document.getElementById("poemWrap").innerHTML = html;
+}
+function learnPoem(title){
+    if(!globalData.learnedPoem.includes(title)){
+        globalData.learnedPoem.push(title);
+        globalData.totalExp += 6;
+        saveGlobalData();
+        alert(`学会古诗《${title}》，获得6点经验！`);
+        renderRewardCenter();
+    }else alert("这首古诗你已经学会啦");
+}
+function nextWeekPoem(){
+    globalData.weekPoemIdx++;
+    saveGlobalData();
+    renderPoemPage();
+}
+// ===================== 6.每日拓展5类卡片 =====================
+function renderExpandPage(){
+    let html = `<h2>每日拓展5类卡片，点击听读，可刷新换一批</h2>`;
+    const cardList = [
+        {name:"今日小知识",text:"小鱼是用鱼鳃呼吸水里的氧气"},
+        {name:"动手实验",text:"盐水可以让鸡蛋浮起来"},
+        {name:"故事时间",text:"小兔子和胡萝卜的小故事"},
+        {name:"儿歌推荐",text:"一闪一闪亮晶晶，满天都是小星星"},
+        {name:"每日挑战",text:"今天自己整理全部玩具"}
+    ];
+    cardList.forEach(card=>{
+        html += `
+        <div style="border:1px solid #cce5ff;border-radius:12px;padding:14px;margin:8px 0;">
+            <h3>${card.name}</h3>
+            <p>${card.text}</p>
+            <button class="btn btn-blue" onclick="voiceReadCN('${card.name}：${card.text}')">🔊听读卡片</button>
+        </div>`;
+    });
+    html += `<button class="btn btn-green" onclick="getFoodReward('straw');updateTodayStudy(true);alert('完成全部拓展卡片，奖励草莓🍓')">看完今日全部拓展</button>`;
+    document.getElementById("expandWrap").innerHTML = html;
+}
+// ===================== 备忘录任务管理 =====================
+function renderTodoList(){
+    const wrap = document.getElementById("todoListWrap");
+    if(globalData.todoList.length === 0){
+        wrap.innerHTML = "<p>暂无待办任务，添加新任务开始规划学习</p>";
+        return;
+    }
+    let html = "";
+    globalData.todoList.forEach((item,idx)=>{
+        html += `
+        <div class="list-item">
+            <span style="${item.done?"text-decoration:line-through;opacity:0.6":""}">${item.text}</span>
+            <div>
+                <button class="btn btn-blue" onclick="toggleTodo(${idx})">${item.done?"未完成":"完成"}</button>
+                <button class="btn btn-red" onclick="delTodo(${idx})">删除</button>
+            </div>
+        </div>`;
+    });
+    wrap.innerHTML = html;
+}
+function addTodoItem(){
+    const input = document.getElementById("todoInput");
+    const text = input.value.trim();
+    if(!text){alert("请输入任务文字");return;}
+    globalData.todoList.push({text:text,done:false});
+    input.value = "";
+    saveGlobalData();renderTodoList();
+}
+function toggleTodo(idx){
+    globalData.todoList[idx].done = !globalData.todoList[idx].done;
+    saveGlobalData();renderTodoList();
+}
+function delTodo(idx){
+    globalData.todoList.splice(idx,1);
+    saveGlobalData();renderTodoList();
+}
+// ===================== 错题本渲染 =====================
+function renderWrongList(){
+    const wrap = document.getElementById("wrongListWrap");
+    if(globalData.wrongList.length === 0){
+        wrap.innerHTML = "<p>暂无错题，答题细心一点哦！</p>";
+        return;
+    }
+    let html = "";
+    globalData.wrongList.forEach(item=>{
+        html += `
+        <div style="border:1px solid #ffdddd;border-radius:12px;padding:14px;margin:10px 0;">
+            <p>题型：${item.type}</p>
+            <p>题目：${item.question}</p>
+            <p>正确答案：${item.rightAnswer}</p>
+            <p>记录时间：${item.time}</p>
+        </div>`;
+    });
+    wrap.innerHTML = html;
+}
+// ===================== 打卡日历（成长连续天数） =====================
+function renderStreakCalendar(){
+    const wrap = document.getElementById("streakCalGrid");
+    wrap.innerHTML = "";
+    const now = new Date();
+    const monthDays = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    for(let i=1;i<=monthDays;i++){
+        const dayDom = document.createElement("div");
+        dayDom.className = "cal-day";
+        dayDom.innerText = i;
+        const dateStr = `${now.getFullYear()}-${now.getMonth()+1}-${i}`;
+        if(globalData.checkCalendar.includes(dateStr)) dayDom.classList.add("cal-checked");
+        wrap.appendChild(dayDom);
+    }
+    document.getElementById("calStreak").innerText = globalData.streakDays;
+}
+// 完成全部当日任务自动打卡
+function finishAllTaskCheck(){
+    if(globalData.todayFinishAll) return alert("今日已经打卡完成啦");
+    const todayDate = new Date();
+    const dateKey = `${todayDate.getFullYear()}-${todayDate.getMonth()+1}-${todayDate.getDate()}`;
+    globalData.checkCalendar.push(dateKey);
+    globalData.todayFinishAll = true;
+    globalData.streakDays++;
+    saveGlobalData();
+    renderStreakCalendar();
+    renderTopHeader();
+    alert("今日全部学习任务完成，打卡成功！连续打卡+1天");
+}
+// ===================== 奖励中心 =====================
+function renderRewardCenter(){
+    const wrap = document.getElementById("rewardWrap");
+    let stageName = "";
+    switch(globalData.petStage){
+        case 1:stageName="兔宝宝";break;
+        case 2:stageName="小兔";break;
+        case 3:stageName="大兔";break;
+        case 4:stageName="英雄兔";break;
+    }
+    wrap.innerHTML = `
+        <h2>奖励总览中心</h2>
+        <p>兔子成长阶段：${stageName}</p>
+        <p>总经验值：${globalData.totalExp}</p>
+        <p>食物库存：🥕${globalData.stockCarrot} 🍓${globalData.stockStraw} 💧${globalData.stockWater}</p>
+        <p>连续打卡天数：${globalData.streakDays}</p>
+        <p>已经学会古诗数量：${globalData.learnedPoem.length} 首</p>
+        <p>今日答题总数：${globalData.todayDone} ｜最高连续答对：${globalData.maxStreakAns}</p>
+        <button class="btn btn-green" onclick="finishAllTaskCheck()">完成今日全部学习，打卡记录</button>
+    `;
+}
+// ===================== 页面初始化加载 =====================
+window.onload = function(){
+    checkDailyReset();
+    renderTopHeader();
+    renderHomePage();
+    // 绑定导航点击事件
+    document.querySelectorAll(".nav-btn").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+            const pageId = btn.getAttribute("data-page");
+            switchNav(pageId);
+        })
+    })
+}
+</script>
+</body>
+</html>
