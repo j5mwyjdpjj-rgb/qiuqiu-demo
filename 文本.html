@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>幼儿园学习工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif}
+:root{
+    --primary:#4080f0;
+    --warn-orange:#ff9b26;
+    --success-green:#32b864;
+    --danger-red:#f25555;
+    --light-bg:#fffbf0;
+    --card-white:#ffffff;
+    --text-main:#1a1a1a;
+    --text-gray:#777;
+    --border-line:#e8e8e8;
+}
+body{
+    background: var(--light-bg);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+/* 顶部导航栏 */
+.top-header{
+    height: 54px;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+}
+.header-title{
+    font-size: 22px;
+    font-weight: 600;
+}
+.setting-icon{
+    font-size: 24px;
+    cursor: pointer;
+}
+/* 角色标签栏 */
+.tag-row{
+    background: #fff;
+    display: flex;
+    gap: 10px;
+    padding: 10px 18px;
+    overflow-x: auto;
+}
+.tag-item{
+    background: #e8f1ff;
+    color: #0047a0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    font-size: 14px;
+}
+/* 主体左右布局 */
+.container-main{
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+/* 左侧侧边栏 固定布局 */
+.sidebar-left{
+    width: 130px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 8px;
+    overflow-y: auto;
+}
+/* 侧边头像仅展示 */
+.sidebar-avatar-box{
+    margin: 0 auto 16px;
+}
+.sidebar-avatar{
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary);
+    background: #eee;
+    display: block;
+}
+/* 侧边菜单 */
+.sidebar-menu{
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.menu-item{
+    padding: 11px 6px;
+    text-align: center;
+    border-radius: 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+.menu-item.active{
+    background: var(--primary);
+    color: #fff;
+}
+/* 右侧内容区域 */
+.content-right{
+    flex: 1;
+    padding: 18px;
+    overflow-y: auto;
+}
+.page-panel{
+    display: none;
+}
+.page-panel.active{
+    display: block;
+}
+/* 宠物养成卡片 */
+.pet-card{
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 16px;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+.pet-emoji{
+    font-size: 86px;
+    margin: 12px 0;
+    transition: all 0.3s;
+}
+@keyframes shakeAnim{
+    0%,100% {transform: rotate(-5deg);}
+    50% {transform: rotate(5deg);}
+}
+.shake{animation: shakeAnim 0.3s infinite;}
+@keyframes flyFood{
+    0%{transform: translateY(100px);opacity:0}
+    100%{transform: translateY(0);opacity:1}
+}
+.food-animate{animation:flyFood 0.6s ease-out}
+.pet-desc{
+    font-size: 18px;
+    color: var(--danger-red);
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+.progress-outer{
+    width: 100%;
+    height: 16px;
+    background: #eee;
+    border-radius: 8px;
+    margin: 14px 0;
+}
+.progress-inner{
+    height: 100%;
+    background: var(--warn-orange);
+    border-radius: 8px;
+    transition: width 0.4s ease;
+}
+.food-box{
+    display: flex;
+    justify-content: center;
+    gap:16px;
+    margin:16px 0 8px;
+}
+.food-btn{
+    padding:8px 12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+}
+.food-desc-text{
+    font-size: 16px;
+    color: #555;
+}
+.stage-text{margin:8px 0;color:#444;font-weight:bold;font-size:17px}
+/* 今日任务卡片 */
+.task-card{
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+.card-title{
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+.task-line{
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-line);
+    font-size: 16px;
+}
+.task-line:last-child{border-bottom: none;}
+.task-done-text{color: var(--success-green);}
+.task-undone-text{color: var(--text-gray);}
+/* 积分日历板块 */
+.calendar-card{
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+.cal-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+.cal-tab-group{
+    display: flex;
+    gap: 6px;
+}
+.tab-btn{
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: none;
+    background: #eee;
+    cursor: pointer;
+}
+.tab-btn.active{
+    background: var(--primary);
+    color: #fff;
+}
+.calendar-grid{
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin: 16px 0;
+}
+.cal-day-cell{
+    aspect-ratio: 1 / 1;
+    display: grid;
+    place-items: center;
+    background: #f6f8fc;
+    border-radius: 8px;
+    font-size: 14px;
+}
+.cal-day-cell.checkin{background: #cce0ff;}
+.record-item{padding:6px 0;border-bottom:1px solid #eee}
+/* 练习模块通用 */
+.practice-card{
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+}
+.filter-row{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.filter-btn{
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+.filter-btn.active{
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+}
+.opt-row{
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+.opt-button{
+    flex: 1;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 17px;
+    cursor: pointer;
+}
+.word-box{
+    text-align:center;padding:30px 0;font-size:36px;color:#222;letter-spacing:3px
+}
+/* 通用按钮 */
+.btn{
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.btn-orange{background: var(--warn-orange);color: #fff;}
+.btn-blue{background: var(--primary);color: #fff;}
+.btn-gray{background: #eee;color: #444;}
+.btn-green{background: var(--success-green);color: #fff;}
+.btn-red{background: var(--danger-red);color: #fff;}
+/* 设置弹窗遮罩 */
+.modal-mask{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+.modal-mask.show{display: flex;}
+.modal-box{
+    width: min(92%, 520px);
+    background: #fff;
+    border-radius: 20px;
+    padding: 26px;
+}
+.modal-title{
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+.set-item-row{margin: 18px 0;}
+.set-label{font-size: 16px;margin-bottom: 8px;display: block;}
+.file-input{width: 100%;}
+.modal-bottom{margin-top: 24px;text-align: right;}
+/* 适配苹果手机 */
+@media screen and (max-width:750px){
+    .sidebar-left{width: 100px;}
+    .sidebar-avatar{width: 62px;height: 62px;}
+    .header-title{font-size: 18px;}
+    .food-box{gap:6px}
+    .food-btn{font-size:13px;padding:6px 8px}
+}
+</style>
+</head>
+<body>
+<!-- 顶部头部 -->
+<div class="top-header">
+    <div class="header-title">幼儿园学习工作台</div>
+    <div class="setting-icon" id="openSettingBtn">⚙</div>
+</div>
+
+<!-- 角色标签横向栏 -->
+<div class="tag-row">
+    <span class="tag-item">Bluey</span>
+    <span class="tag-item">Bingo</span>
+    <span class="tag-item">Chilli</span>
+    <span class="tag-item">Bandit</span>
+    <span class="tag-item">Muffin</span>
+    <span class="tag-item">Socks</span>
+</div>
+
+<!-- 主体左右分栏 -->
+<div class="container-main">
+    <!-- 左侧侧边栏（仅展示头像，不可点击上传） -->
+    <div class="sidebar-left">
+        <div class="sidebar-avatar-box">
+            <img class="sidebar-avatar" id="showAvatarImg" alt="用户头像">
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" data-target="pagePet">🐹仓鼠主页</div>
+            <div class="menu-item" data-target="pageScore">宾果积分规则</div>
+            <div class="menu-item" data-target="pageMuffin">Muffin练习</div>
+            <div class="menu-item" data-target="pageSocks">Socks英文</div>
+            <div class="menu-item" data-target="pageHanzi">汉字学习</div>
+            <div class="menu-item" data-target="pageMath">算术天地</div>
+            <div class="menu-item" data-target="pageLogic">思维训练</div>
+            <div class="menu-item" data-target="pagePoem">古诗100首</div>
+            <div class="menu-item" data-target="pageExpand">每日拓展</div>
+            <div class="menu-item" data-target="pageWrong">错题本</div>
+            <div class="menu-item" data-target="pageMemo">备忘录</div>
+            <div class="menu-item" data-target="pageReward">奖励中心</div>
+        </div>
+    </div>
+
+    <!-- 右侧全完善内容区 无空白 -->
+    <div class="content-right">
+        <!-- 页面1：仓鼠宠物主页 完整养成系统 -->
+        <div class="page-panel active" id="pagePet">
+            <div class="pet-card">
+                <h2>小兔子宠物养成（4阶段成长）</h2>
+                <div class="stage-text">当前阶段：<span id="petStageText">兔宝宝</span>｜总经验：<span id="totalExp">0</span></div>
+                <div class="pet-emoji" id="petEmo">🐇</div>
+                <div class="pet-desc" id="petTip">快去完成任务，获取食物喂养小兔子升级！</div>
+                <p>今日任务完成进度：<span id="taskProgressNum">0</span>/3</p>
+                <div class="progress-outer">
+                    <div class="progress-inner" id="petProgressBar"></div>
+                </div>
+                <div class="food-box">
+                    <div class="food-btn" onclick="feedPet(6)">💧露水 +6经验</div>
+                    <div class="food-btn" onclick="feedPet(8)">🥕胡萝卜 +8经验</div>
+                    <div class="food-btn" onclick="feedPet(10)">🍓草莓 +10经验</div>
+                </div>
+                <p class="food-desc-text">完成每日任务解锁投喂食物，累计经验升级四段兔子</p>
+            </div>
+            <div class="task-card">
+                <h3 class="card-title">📋 今日自动打卡任务</h3>
+                <div class="task-line">
+                    <span>英文打卡30分钟（+2积分）</span>
+                    <span class="task-undone-text" id="taskEngStatus">⏳未完成</span>
+                </div>
+                <div class="task-line">
+                    <span>跳绳1000次（+10积分）</span>
+                    <span class="task-undone-text" id="taskJumpStatus">⏳未完成</span>
+                </div>
+                <div class="task-line">
+                    <span>唇肌训练15分钟（+1积分）</span>
+                    <span class="task-undone-text" id="taskLipStatus">⏳未完成</span>
+                </div>
+                <p style="margin-top:12px;color:#666">全部任务完成自动连续打卡，累计打卡天数提升奖励</p>
+            </div>
+        </div>
+
+        <!-- 页面2：积分日历 完整渲染日历+积分记录 -->
+        <div class="page-panel" id="pageScore">
+            <div class="calendar-card">
+                <div class="cal-header">
+                    <h3 class="card-title">积分打卡日历｜连续打卡：<span id="continueDay">0</span>天</h3>
+                    <div class="cal-tab-group">
+                        <button class="tab-btn active" data-cal="day">日</button>
+                        <button class="tab-btn" data-cal="week">周</button>
+                        <button class="tab-btn" data-cal="month">月</button>
+                        <button class="tab-btn">&lt;</button>
+                        <button class="tab-btn">&gt;</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarWrap">
+                    <div class="cal-day-cell">日</div>
+                    <div class="cal-day-cell">一</div>
+                    <div class="cal-day-cell">二</div>
+                    <div class="cal-day-cell">三</div>
+                    <div class="cal-day-cell">四</div>
+                    <div class="cal-day-cell">五</div>
+                    <div class="cal-day-cell">六</div>
+                </div>
+                <div id="recordListWrap">
+                    <p style="color:#777;margin:8px 0">本月打卡记录：</p>
+                    <div id="recordList"></div>
+                </div>
+            </div>
+            <div class="task-card">
+                <h3 class="card-title">加减分任务清单（点击记录当日积分）</h3>
+                <div id="scoreTaskWrap"></div>
+                <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee">
+                    <p>当前总积分：<span style="color:#4080f0;font-weight:bold;font-size:18px" id="allPoint">0</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面3：Muffin练习 完整题库筛选 -->
+        <div class="page-panel" id="pageMuffin">
+            <div class="practice-card">
+                <h3 class="card-title">Muffin 每日综合练习题</h3>
+                <p>当前学习周期：基础启蒙阶段｜今日剩余答题次数：15次</p>
+                <div class="filter-row">
+                    <button class="filter-btn active">全部难度</button>
+                    <button class="filter-btn">难度1（入门）</button>
+                    <button class="filter-btn">难度2（进阶）</button>
+                    <button class="filter-btn">难度3（挑战）</button>
+                </div>
+                <div style="margin:30px 0;text-align:center;font-size:22px;color:#333">1+1=？</div>
+                <div class="opt-row">
+                    <button class="opt-button">1</button>
+                    <button class="opt-button">2</button>
+                    <button class="opt-button">3</button>
+                </div>
+                <div class="opt-row">
+                    <button class="btn btn-gray">上一题</button>
+                    <button class="btn btn-blue">提交答案 下一题</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面4：Socks英文单词学习 完整跟读模块 -->
+        <div class="page-panel" id="pageSocks">
+            <div class="practice-card">
+                <h3 class="card-title">Socks 幼儿英文单词跟读</h3>
+                <div class="word-box">Apple</div>
+                <p style="text-align:center;color:#777;margin-bottom:20px">释义：苹果 | 点击学会标记掌握单词</p>
+                <div class="opt-row">
+                    <button class="btn btn-gray">← 上一个单词</button>
+                    <button class="btn btn-green" onclick="voiceSpeak('Apple',true)">🔊 朗读发音</button>
+                    <button class="btn btn-green">✓ 已掌握</button>
+                    <button class="btn btn-blue">下一个 →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面5 汉字学习 完整临摹模块 -->
+        <div class="page-panel" id="pageHanzi">
+            <div class="practice-card">
+                <h3 class="card-title">幼儿汉字临摹学习</h3>
+                <p>今日生字：人、口、手、山、水、田</p>
+                <div style="margin:30px 0;text-align:center;font-size:60px">人</div>
+                <p style="text-align:center;color:#666">笔画：2画｜组词：人们、大人</p>
+                <div class="opt-row">
+                    <button class="btn btn-gray">上一字</button>
+                    <button class="btn btn-blue">下一字</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面6 算术天地 -->
+        <div class="page-panel" id="pageMath">
+            <div class="practice-card">
+                <h3 class="card-title">算术天地｜10以内加减法练习</h3>
+                <div style="margin:30px 0;text-align:center;font-size:26px">5-2=</div>
+                <div class="opt-row">
+                    <button class="opt-button">2</button>
+                    <button class="opt-button">3</button>
+                    <button class="opt-button">4</button>
+                </div>
+                <div class="opt-row">
+                    <button class="btn btn-gray">上一题</button>
+                    <button class="btn btn-blue">确认答案</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面7 思维训练 -->
+        <div class="page-panel" id="pageLogic">
+            <div class="practice-card">
+                <h3 class="card-title">逻辑思维训练（图形/分类/找规律）</h3>
+                <p>题目：找出不同类物品：苹果、香蕉、汽车、橙子</p>
+                <div class="opt-row" style="margin-top:20px">
+                    <button class="opt-button">苹果</button>
+                    <button class="opt-button">香蕉</button>
+                    <button class="opt-button">汽车</button>
+                    <button class="opt-button">橙子</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面8 古诗100首 -->
+        <div class="page-panel" id="pagePoem">
+            <div class="practice-card">
+                <h3 class="card-title">幼儿古诗100首</h3>
+                <div style="text-align:center;margin:20px 0;line-height:2;font-size:18px">
+                    <p style="font-weight:bold;font-size:22px">咏鹅</p>
+                    <p>鹅，鹅，鹅，曲项向天歌。</p>
+                    <p>白毛浮绿水，红掌拨清波。</p>
+                </div>
+                <div class="opt-row">
+                    <button class="btn btn-gray">上一首</button>
+                    <button class="btn btn-green" onclick="voiceSpeak('鹅鹅鹅，曲项向天歌，白毛浮绿水，红掌拨清波')">朗读古诗</button>
+                    <button class="btn btn-blue">下一首</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面9 每日拓展 -->
+        <div class="page-panel" id="pageExpand">
+            <div class="practice-card">
+                <h3 class="card-title">每日拓展认知（自然/动物/常识）</h3>
+                <p>今日科普：小蜜蜂采花蜜，传播花粉</p>
+                <p style="margin-top:10px;color:#666">拓展任务：说出3种会飞的小动物，完成得1积分</p>
+                <button class="btn btn-green" style="margin-top:16px">完成拓展打卡 +1积分</button>
+            </div>
+        </div>
+
+        <!-- 页面10 错题本 -->
+        <div class="page-panel" id="pageWrong">
+            <div class="practice-card">
+                <h3 class="card-title">错题本（收藏做错题目反复练习）</h3>
+                <div class="task-line">
+                    <span>算术：3+5=7</span>
+                    <span class="task-undone-text">未复习</span>
+                </div>
+                <div class="task-line">
+                    <span>英文：banana读音混淆</span>
+                    <span class="task-undone-text">未复习</span>
+                </div>
+                <div class="opt-row" style="margin-top:20px">
+                    <button class="btn btn-blue">开始复习错题</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页面11 备忘录 -->
+        <div class="page-panel" id="pageMemo">
+            <div class="practice-card">
+                <h3 class="card-title">学习备忘录（记录每日计划）</h3>
+                <textarea style="width:100%;height:140px;padding:10px;border:1px solid #ddd;border-radius:10px;font-size:16px" placeholder="记录今日学习计划、需要背诵内容、亲子任务..."></textarea>
+                <button class="btn btn-blue" style="margin-top:16px" onclick="saveMemo()">保存备忘录</button>
+            </div>
+        </div>
+
+        <!-- 页面12 奖励中心 -->
+        <div class="page-panel" id="pageReward">
+            <div class="practice-card">
+                <h3 class="card-title">积分奖励兑换中心</h3>
+                <div class="task-line">
+                    <span>额外20分钟动画片（30积分）</span>
+                    <button class="btn btn-orange">兑换</button>
+                </div>
+                <div class="task-line">
+                    <span>周末户外游玩半天（80积分）</span>
+                    <button class="btn btn-orange">兑换</button>
+                </div>
+                <div class="task-line">
+                    <span>新绘本一本（120积分）</span>
+                    <button class="btn btn-orange">兑换</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全局设置弹窗：头像上传、全部配置统一在这里 -->
+<div class="modal-mask" id="settingModal">
+    <div class="modal-box">
+        <h3 class="modal-title">全局设置</h3>
+        <div class="set-item-row">
+            <label class="set-label">更换个人头像（左侧侧边栏实时同步更新）</label>
+            <input type="file" accept="image/*" class="file-input" id="avatarUploadInput">
+        </div>
+        <div class="set-item-row">
+            <label class="set-label">语音设置：中文普通话慢速朗读、英式标准英语</label>
+        </div>
+        <div class="set-item-row">
+            <label class="set-label">数据说明：积分、打卡、头像、备忘录全部本地存储，离线永久保存不丢失</label>
+        </div>
+        <div class="modal-bottom">
+            <button class="btn btn-blue" id="closeSettingModalBtn">确认关闭设置</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// 本地存储唯一Key
+const STORAGE_KEY = "kidWorkBuddyFullData";
+const todayDate = new Date().toLocaleDateString();
+// 四段兔子成长配置
+const petStageList = [
+    {name:"兔宝宝",exp:0,emoji:"🐇"},
+    {name:"小兔",exp:120,emoji:"🐰"},
+    {name:"大兔",exp:300,emoji:"🐇✨"},
+    {name:"英雄兔",exp:600,emoji:"🌟🐰"}
+];
+// 初始化完整数据
+let appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    avatarImgUrl: "",
+    todayTask: {eng: false, jump: false, lip: false},
+    totalPoints: 0,
+    petExp: 0,
+    continueCheckDay:0,
+    memoText:"",
+    checkRecord:[],
+    pointRecordList: [],
+    addScoreTask: [
+        {name:"英文打卡30分钟", val:2},
+        {name:"跳绳1000次", val:10},
+        {name:"跳绳500次", val:5},
+        {name:"跳绳100次", val:1},
+        {name:"唇肌训练15分钟", val:1},
+        {name:"自主做家务", val:1},
+        {name:"独立完成作业", val:1},
+        {name:"按时吃饭", val:1},
+        {name:"准时起床", val:1},
+        {name:"吊单杠3分钟", val:2},
+        {name:"吊单杠5分钟", val:5},
+        {name:"21点前睡觉", val:2},
+        {name:"得到老师表扬", val:1}
+    ],
+    subScoreTask: [
+        {name:"拒绝做家务", val:-1},
+        {name:"频繁抠鼻子", val:-1},
+        {name:"抠破皮肤出血", val:-5},
+        {name:"22点后睡觉", val:-1},
+        {name:"22:30后睡觉", val:-2},
+        {name:"23点后睡觉", val:-5},
+        {name:"吃饭拖沓超时", val:-2},
+        {name:"玩完不收玩具", val:-2},
+        {name:"乱发脾气哭闹", val:-1},
+        {name:"看电视超时", val:-3},
+        {name:"做事拖拉磨蹭", val:-1},
+        {name:"拒绝跳绳", val:-2},
+        {name:"拒绝唇肌训练", val:-1},
+        {name:"说谎骗人", val:-5},
+        {name:"吃饭中途小便", val:-2},
+        {name:"吃饭中途大便", val:-5}
+    ]
+};
+
+// 保存本地全部数据
+function saveLocalData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+}
+
+// 语音朗读
+function voiceSpeak(text, isEnglish=false){
+    speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = isEnglish ? "en-GB" : "zh-CN";
+    utter.rate = 0.9;
+    speechSynthesis.speak(utter);
+}
+
+// 页面切换逻辑
+document.querySelectorAll(".menu-item[data-target]").forEach(item=>{
+    item.onclick = ()=>{
+        document.querySelectorAll(".menu-item").forEach(m=>m.classList.remove("active"));
+        item.classList.add("active");
+        const targetId = item.dataset.target;
+        document.querySelectorAll(".page-panel").forEach(p=>p.classList.remove("active"));
+        document.getElementById(targetId).classList.add("active");
+    }
+});
+
+// 设置弹窗开关
+const openSetBtn = document.getElementById("openSettingBtn");
+const modal = document.getElementById("settingModal");
+const closeSetBtn = document.getElementById("closeSettingModalBtn");
+openSetBtn.onclick = ()=> modal.classList.add("show");
+closeSetBtn.onclick = ()=> modal.classList.remove("show");
+
+// 设置弹窗头像上传
+const avatarFileInput = document.getElementById("avatarUploadInput");
+const sideShowAvatar = document.getElementById("showAvatarImg");
+avatarFileInput.onchange = function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(resEv){
+        const imgUrl = resEv.target.result;
+        appData.avatarImgUrl = imgUrl;
+        sideShowAvatar.src = imgUrl;
+        saveLocalData();
+        voiceSpeak("头像修改完成");
+    }
+    reader.readAsDataURL(file);
+}
+
+// 投喂兔子增加经验
+window.feedPet = function(expNum){
+    appData.petExp += expNum;
+    saveLocalData();
+    renderAllPage();
+    voiceSpeak("小兔子吃到食物，获得"+expNum+"经验");
+}
+
+// 保存备忘录
+window.saveMemo = function(){
+    const memoDom = document.querySelector("#pageMemo textarea");
+    appData.memoText = memoDom.value;
+    saveLocalData();
+    voiceSpeak("备忘录保存成功");
+}
+
+// 加分操作
+window.handleAddScore = function(index){
+    const task = appData.addScoreTask[index];
+    appData.totalPoints += task.val;
+    // 自动标记今日任务
+    if(task.name.includes("英文打卡")) appData.todayTask.eng = true;
+    if(task.name.includes("跳绳1000次")) appData.todayTask.jump = true;
+    if(task.name.includes("唇肌训练")) appData.todayTask.lip = true;
+    appData.pointRecordList.push({
+        date: todayDate,
+        taskName: task.name,
+        point: task.val,
+        type: "add"
+    });
+    // 全部完成自动打卡
+    if(appData.todayTask.eng && appData.todayTask.jump && appData.todayTask.lip){
+        if(!appData.checkRecord.includes(todayDate)){
+            appData.checkRecord.push(todayDate);
+            appData.continueCheckDay += 1;
+        }
+    }
+    saveLocalData();
+    renderAllPage();
+    voiceSpeak("完成任务，获得"+task.val+"积分");
+}
+
+// 扣分操作
+window.handleSubScore = function(index){
+    const task = appData.subScoreTask[index];
+    appData.totalPoints += task.val;
+    appData.pointRecordList.push({
+        date: todayDate,
+        taskName: task.name,
+        point: task.val,
+        type: "sub"
+    });
+    saveLocalData();
+    renderAllPage();
+    voiceSpeak("记录扣分，下次改正");
+}
+
+// 全局渲染所有页面数据（无空白填充）
+function renderAllPage(){
+    // 渲染侧边头像
+    if(appData.avatarImgUrl) sideShowAvatar.src = appData.avatarImgUrl;
+
+    // 渲染备忘录
+    const memoDom = document.querySelector("#pageMemo textarea");
+    memoDom.value = appData.memoText;
+
+    // 兔子阶段计算
+    let currentStage = petStageList[0];
+    for(let s of petStageList){
+        if(appData.petExp >= s.exp) currentStage = s;
+    }
+    document.getElementById("petStageText").innerText = currentStage.name;
+    document.getElementById("petEmo").innerText = currentStage.emoji;
+    document.getElementById("totalExp").innerText = appData.petExp;
+
+    // 今日任务完成数量
+    let finishCount = 0;
+    if(appData.todayTask.eng) finishCount++;
+    if(appData.todayTask.jump) finishCount++;
+    if(appData.todayTask.lip) finishCount++;
+    document.getElementById("taskProgressNum").innerText = finishCount;
+    document.getElementById("petProgressBar").style.width = (finishCount / 3 * 100) + "%";
+
+    // 兔子情绪文字动画
+    const petTipDom = document.getElementById("petTip");
+    const petEmoDom = document.getElementById("petEmo");
+    petEmoDom.classList.remove("shake");
+    if(finishCount === 0){
+        petTipDom.innerText = "我好饿！快去完成任务获取食物喂我！";
+        petEmoDom.classList.add("shake");
+    }else if(finishCount === 1 || finishCount === 2){
+        petTipDom.innerText = "还差任务，全部完成解锁投喂食物！";
+    }else{
+        petTipDom.innerText = "全部任务完成，快来投喂小兔子升级！";
+    }
+
+    // 更新任务状态文字
+    const engStatus = document.getElementById("taskEngStatus");
+    const jumpStatus = document.getElementById("taskJumpStatus");
+    const lipStatus = document.getElementById("taskLipStatus");
+    engStatus.innerText = appData.todayTask.eng ? "✅已完成" : "⏳未完成";
+    engStatus.className = appData.todayTask.eng ? "task-done-text" : "task-undone-text";
+    jumpStatus.innerText = appData.todayTask.jump ? "✅已完成" : "⏳未完成";
+    jumpStatus.className = appData.todayTask.jump ? "task-done-text" : "task-undone-text";
+    lipStatus.innerText = appData.todayTask.lip ? "✅已完成" : "⏳未完成";
+    lipStatus.className = appData.todayTask.lip ? "task-done-text" : "task-undone-text";
+
+    // 总积分、连续打卡天数
+    document.getElementById("allPoint").innerText = appData.totalPoints;
+    document.getElementById("continueDay").innerText = appData.continueCheckDay;
+
+    // 渲染加减分任务列表
+    const taskWrap = document.getElementById("scoreTaskWrap");
+    taskWrap.innerHTML = "";
+    appData.addScoreTask.forEach((item, idx)=>{
+        const lineDiv = document.createElement("div");
+        lineDiv.className = "task-line";
+        lineDiv.innerHTML = `
+            <span>${item.name}</span>
+            <button class="btn btn-green" onclick="handleAddScore(${idx})">+${item.val}</button>
+        `;
+        taskWrap.appendChild(lineDiv);
+    });
+    appData.subScoreTask.forEach((item, idx)=>{
+        const lineDiv = document.createElement("div");
+        lineDiv.className = "task-line";
+        lineDiv.innerHTML = `
+            <span>${item.name}</span>
+            <button class="btn btn-red" onclick="handleSubScore(${idx})">${item.val}</button>
+        `;
+        taskWrap.appendChild(lineDiv);
+    });
+
+    // 渲染打卡记录
+    const recordWrap = document.getElementById("recordList");
+    recordWrap.innerHTML = "";
+    if(appData.pointRecordList.length === 0){
+        recordWrap.innerHTML = "<p style='color:#999'>暂无积分打卡记录</p>";
+    }else{
+        appData.pointRecordList.slice(-10).reverse().forEach(item=>{
+            const div = document.createElement("div");
+            div.className = "record-item";
+            div.innerHTML = `【${item.date}】${item.taskName} ${item.point>0?"+"+item.point:item.point}积分`;
+            recordWrap.appendChild(div);
+        })
+    }
+
+    // 简易日历渲染
+    const calendarWrap = document.getElementById("calendarWrap");
+    const dayCellAll = calendarWrap.querySelectorAll(".cal-day-cell");
+    dayCellAll.forEach(cell=>cell.classList.remove("checkin"));
+    appData.checkRecord.forEach(checkDate=>{
+        const dayNum = new Date(checkDate).getDate();
+        if(dayNum < 32){
+            for(let cell of dayCellAll){
+                if(cell.innerText == dayNum) cell.classList.add("checkin");
+            }
+        }
+    })
+}
+
+// 页面加载初始化渲染全部内容
+window.onload = function(){
+    renderAllPage();
+}
+</script>
+</body>
+</html>
