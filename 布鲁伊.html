@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>球球布鲁伊积分工作台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,Microsoft YaHei}
+:root{
+  --main:#4299e1;--orange:#f69024;--card:#fff;--gray:#f3f4f6;--danger:#ef4444;--green:#22c55e;--purple:#a855f7;--pink:#f472b6;--yellow:#facc15
+}
+body{background:#f0f7ff;display:flex;height:100vh;overflow:hidden}
+/* 侧边导航 */
+.sidebar{width:220px;background:#fff;border-right:1px solid #e2e8f0;padding:10px 0;display:flex;flex-direction:column}
+.side-item{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin:4px 8px;cursor:pointer;transition:.2s}
+.side-item:hover{background:#e6f0ff}
+.side-item.active{background:var(--main);color:white}
+.side-avatar{width:36px;height:36px;border-radius:8px;object-fit:cover}
+/* 顶部头部 */
+.top-bar{height:70px;background:white;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.top-left{display:flex;align-items:center;gap:12px}
+.top-cover{width:48px;height:48px;border-radius:10px;object-fit:cover;border:2px solid var(--main)}
+.title-input{border:none;font-size:18px;font-weight:bold;width:220px;background:transparent;border-bottom:1px solid transparent}
+.title-input:focus{outline:none;border-bottom:1px solid #ccc}
+.top-right{display:flex;align-items:center;gap:16px}
+.badge{background:var(--orange);color:white;padding:6px 14px;border-radius:20px;font-weight:bold}
+.setting-btn{width:36px;height:36px;border-radius:50%;background:var(--gray);border:none;cursor:pointer;font-size:18px}
+/* 主内容区 */
+.main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.content-box{flex:1;padding:20px;overflow-y:auto}
+.page-header{background:var(--main);color:white;padding:12px 18px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.page-header img{width:40px;height:40px;border-radius:8px}
+/* 卡片通用 */
+.grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:16px 0}
+.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 2px 8px #00000010}
+.card h4{margin-bottom:8px}
+.btn{padding:8px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+.btn-orange{background:var(--orange);color:white}
+.btn-green{background:var(--green);color:white}
+.btn-red{background:var(--danger);color:white}
+.btn-blue{background:var(--main);color:white}
+/* 仓鼠模块 */
+.hamster-box{text-align:center;padding:30px 0}
+.hamster-emoji{font-size:100px;margin:10px 0;cursor:pointer;transition:.3s}
+.hamster-tip{font-size:18px;margin:12px 0;min-height:50px}
+.task-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:20px auto;max-width:600px}
+.task-tag{padding:8px 12px;background:#e6f0ff;border-radius:8px}
+.task-tag.done{background:#dcfce7;color:#166534}
+/* 弹窗遮罩 */
+.mask{position:fixed;inset:0;background:#00000050;display:none;align-items:center;justify-content:center;z-index:99}
+.pop{background:white;width:min(90%,700px);border-radius:14px;padding:24px;max-height:90vh;overflow-y:auto}
+.pop-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.close-pop{border:none;background:none;font-size:22px;cursor:pointer}
+.avatar-set-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
+.avatar-set-item img{width:60px;height:60px;border-radius:10px}
+/* 练习卡片样式 */
+.pinyin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.math-line{font-size:32px;font-weight:bold;margin:10px 0}
+.math-num{color:#333}
+.math-add{color:var(--pink)}
+.math-equal{color:var(--yellow)}
+.math-q{color:var(--purple)}
+.emoji-row{font-size:28px;margin:8px 0}
+.input-ans{border:2px dashed var(--yellow);width:70px;height:46px;font-size:24px;text-align:center;border-radius:8px}
+/* 日历统计 */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.stat-card{padding:14px;border-radius:10px;color:white;text-align:center}
+.stat-today{background:#3b82f6}
+.stat-week{background:#8b5cf6}
+.stat-month{background:#ec4899}
+.calendar-day{display:inline-block;width:40px;height:40px;line-height:40px;text-align:center;margin:3px;border-radius:6px;background:#eee}
+.calendar-day.active{background:var(--main);color:white}
+.calendar-day.has-record{background:#bae6fd}
+/* 英文学习 */
+.tab-bar{display:flex;gap:8px;margin:12px 0}
+.tab{padding:8px 14px;border-radius:8px;background:#e2e8f0;cursor:pointer}
+.tab.active{background:var(--main);color:white}
+.eng-word{font-size:36px;color:var(--purple);font-weight:bold;margin:8px 0}
+/* 页面切换控制 */
+.page{display:none}
+.page.active{display:block}
+/* 自定义输入框 */
+.custom-input{width:100%;padding:8px;border:1px solid #ddd;border-radius:8px;margin:6px 0}
+/* 思维题选项按钮 */
+.opt-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.opt-btn{padding:10px;border-radius:20px;border:1px solid #ccc;background:#f8f8f8;cursor:pointer}
+.opt-btn.right{background:#dcfce7;border-color:#22c55e}
+.opt-btn.wrong{background:#fee2e2;border-color:#ef4444}
+/* 进度条 */
+.progress-bar{height:10px;background:#eee;border-radius:10px;margin:8px 0}
+.progress-inner{height:100%;background:var(--main);border-radius:10px}
+</style>
+</head>
+<body>
+<!-- 头像设置弹窗 -->
+<div class="mask" id="mask">
+  <div class="pop" id="popBox">
+    <div class="pop-head">
+      <h3>头像设置管理</h3>
+      <button class="close-pop" onclick="closeMask()">×</button>
+    </div>
+    <div id="avatarList"></div>
+  </div>
+</div>
+
+<!-- 左侧侧边栏导航 -->
+<div class="sidebar">
+  <div class="side-item active" data-page="hamster">
+    <span id="av-bluey"></span>
+    <span>布鲁伊 · 仓鼠养成</span>
+  </div>
+  <div class="side-item" data-page="rule">
+    <span id="av-bingo"></span>
+    <span>宾果 · 积分规则</span>
+  </div>
+  <div class="side-item" data-page="shop">
+    <span id="av-chilli"></span>
+    <span>妈妈 · 积分商店</span>
+  </div>
+  <div class="side-item" data-page="calendar">
+    <span id="av-bandit"></span>
+    <span>爸爸 · 积分日历</span>
+  </div>
+  <div class="side-item" data-page="study">
+    <span id="av-muffin"></span>
+    <span>Muffin · 每日练习</span>
+  </div>
+  <div class="side-item" data-page="english">
+    <span id="av-socks"></span>
+    <span>Socks · 英式英语</span>
+  </div>
+</div>
+
+<!-- 右侧主内容区域 -->
+<div class="main-wrap">
+  <div class="top-bar">
+    <div class="top-left">
+      <span id="topCover"></span>
+      <input class="title-input" id="workTitle" value="球球工作台">
+    </div>
+    <div class="top-right">
+      <div class="badge">积分：<span id="nowScore">71</span> | 已兑换：<span id="usedScore">200</span></div>
+      <button class="setting-btn" onclick="openMask()">⚙️</button>
+    </div>
+  </div>
+
+  <div class="content-box">
+    <!-- 页面1 仓鼠养成 -->
+    <div class="page active" id="page-hamster">
+      <div class="page-header">
+        <span id="h-header-av"></span>
+        <h2>布鲁伊的小仓鼠养成</h2>
+      </div>
+      <div class="hamster-box">
+        <div class="hamster-emoji" id="hamsterFace" onclick="hamsterTalk()">😡</div>
+        <div class="hamster-tip" id="hamsterTip">快去完成三项每日任务投喂仓鼠！</div>
+        <div class="task-row" id="taskWrap"></div>
+        <button class="btn btn-orange" id="feedBtn" onclick="feedHamster()" style="display:none">投喂小仓鼠</button>
+      </div>
+    </div>
+
+    <!-- 页面2 积分加减规则 -->
+    <div class="page" id="page-rule">
+      <div class="page-header">
+        <span id="r-header-av"></span>
+        <h2>宾果积分加减规则</h2>
+      </div>
+      <div class="grid-2" id="ruleWrap"></div>
+      <div class="card">
+        <h4>自定义加分事项</h4>
+        <input class="custom-input" id="addCustomName" placeholder="事项名称">
+        <input class="custom-input" id="addCustomNum" placeholder="加分数字">
+        <button class="btn btn-green" onclick="saveCustomAdd()">保存加分项</button>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h4>自定义扣分事项</h4>
+        <input class="custom-input" id="subCustomName" placeholder="事项名称">
+        <input class="custom-input" id="subCustomNum" placeholder="扣分数值">
+        <button class="btn btn-red" onclick="saveCustomSub()">保存扣分项</button>
+      </div>
+    </div>
+
+    <!-- 页面3 积分兑换商店 -->
+    <div class="page" id="page-shop">
+      <div class="page-header">
+        <span id="s-header-av"></span>
+        <h2>妈妈积分兑换商店</h2>
+      </div>
+      <div class="grid-2" id="shopWrap"></div>
+      <div class="card">
+        <h4>自定义兑换礼品</h4>
+        <input class="custom-input" id="shopCustomName" placeholder="礼品名称">
+        <input class="custom-input" id="shopCustomCost" placeholder="所需积分">
+        <button class="btn btn-orange" onclick="saveCustomShop()">新增兑换商品</button>
+      </div>
+    </div>
+
+    <!-- 页面4 积分日历统计 -->
+    <div class="page" id="page-calendar">
+      <div class="page-header">
+        <span id="c-header-av"></span>
+        <h2>爸爸积分月度统计日历</h2>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card stat-today">
+          <h4>今日积分</h4>
+          <div id="statToday">0</div>
+        </div>
+        <div class="stat-card stat-week">
+          <h4>本周积分</h4>
+          <div id="statWeek">0</div>
+        </div>
+        <div class="stat-card stat-month">
+          <h4>本月积分</h4>
+          <div id="statMonth">0</div>
+        </div>
+      </div>
+      <div class="card">
+        <h4>本月打卡日历</h4>
+        <div id="calWrap" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- 页面5 每日学习练习 -->
+    <div class="page" id="page-study">
+      <div class="page-header">
+        <span id="st-header-av"></span>
+        <h2>Muffin每日五大练习</h2>
+      </div>
+      <div class="tab-bar" id="studyTabBar"></div>
+      <div id="studyContent"></div>
+      <div class="card" style="margin-top:16px">
+        <h4>30天学习总进度</h4>
+        <div class="progress-bar"><div class="progress-inner" id="studyProgress" style="width:0%"></div></div>
+        <span id="progressText">完成0/30天</span>
+      </div>
+    </div>
+
+    <!-- 页面6 英式英语单词学习 -->
+    <div class="page" id="page-english">
+      <div class="page-header">
+        <span id="e-header-av"></span>
+        <h2>Socks英式英语单词库</h2>
+      </div>
+      <div class="tab-bar">
+        <div class="tab active" data-engmode="learn">待学习单词</div>
+        <div class="tab" data-engmode="known">已掌握单词</div>
+      </div>
+      <div class="tab-bar" id="engCatTab"></div>
+      <div class="card" id="engCard"></div>
+      <div style="display:flex;gap:10px;margin-top:12px;justify-content:center">
+        <button class="btn btn-blue" onclick="prevEng()">← 上一个</button>
+        <button class="btn btn-green" onclick="knowEng()">标记学会 ✓</button>
+        <button class="btn btn-blue" onclick="nextEng()">下一个 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 全局数据初始化
+const CHAR_LIST = ['bluey','bingo','chilli','bandit','muffin','socks','hamster'];
+const DEFAULT_DATA = {
+  score:71, usedScore:200, coverImg:'', title:'球球工作台',
+  avatar:{bluey:'',bingo:'',chilli:'',bandit:'',muffin:'',socks:'',hamster:''},
+  todayTask:{en:false,skip:0,mouth:false,feeded:false},
+  customAdd:[], customSub:[], customShop:[],
+  scoreLog:[], studyDay:{}, engKnown:{fruit:[],animal:[],color:[],num:[]},
+  engIndex:{cat:'fruit',idx:0}, engMode:'learn'
+};
+let appData = JSON.parse(localStorage.getItem('ballWorkbench')) || {...DEFAULT_DATA};
+function saveData(){localStorage.setItem('ballWorkbench', JSON.stringify(appData));}
+
+// 语音朗读 英文强制英式en-GB
+function speakText(text, isEnglish=false){
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = isEnglish ? 'en-GB' : 'zh-CN';
+  const voices = window.speechSynthesis.getVoices();
+  if(voices.length){
+    const targetVoice = voices.find(v=> isEnglish ? v.lang.includes('en-GB') : v.lang.includes('zh-CN'));
+    if(targetVoice) utt.voice = targetVoice;
+  }
+  utt.rate = 0.95;
+  window.speechSynthesis.speak(utt);
+}
+
+// 默认头像SVG生成
+function avatarHTML(char,size=36){
+  if(appData.avatar[char]) return `<img class="side-avatar" style="width:${size}px;height:${size}px" src="${appData.avatar[char]}">`;
+  const svgMap = {
+    bluey:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#4299e1" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">🐶</text></svg>`,
+    bingo:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#f69024" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">🐕</text></svg>`,
+    chilli:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#ec4899" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">👩</text></svg>`,
+    bandit:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#8b5cf6" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">👨</text></svg>`,
+    muffin:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#34d399" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">👧</text></svg>`,
+    socks:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#fb7185" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">🧦</text></svg>`,
+    hamster:`<svg width="${size}" height="${size}" viewBox="0 0 100 100"><rect fill="#fbbf24" rx="10" width="100" height="100"/><text x="50" y="60" text-anchor="middle" fill="#fff" font-size="36">🐹</text></svg>`
+  };
+  return svgMap[char];
+}
+
+// 全局刷新所有头像
+function renderAllAvatar(){
+  document.getElementById('av-bluey').innerHTML = avatarHTML('bluey');
+  document.getElementById('av-bingo').innerHTML = avatarHTML('bingo');
+  document.getElementById('av-chilli').innerHTML = avatarHTML('chilli');
+  document.getElementById('av-bandit').innerHTML = avatarHTML('bandit');
+  document.getElementById('av-muffin').innerHTML = avatarHTML('muffin');
+  document.getElementById('av-socks').innerHTML = avatarHTML('socks');
+  document.getElementById('h-header-av').innerHTML = avatarHTML('bluey',40);
+  document.getElementById('r-header-av').innerHTML = avatarHTML('bingo',40);
+  document.getElementById('s-header-av').innerHTML = avatarHTML('chilli',40);
+  document.getElementById('c-header-av').innerHTML = avatarHTML('bandit',40);
+  document.getElementById('st-header-av').innerHTML = avatarHTML('muffin',40);
+  document.getElementById('e-header-av').innerHTML = avatarHTML('socks',40);
+  document.getElementById('topCover').innerHTML = avatarHTML('hamster',48);
+  document.getElementById('workTitle').value = appData.title;
+}
+
+// 弹窗控制
+function openMask(){
+  document.getElementById('mask').style.display = 'flex';
+  let html = '';
+  const nameMap = {bluey:'布鲁伊',bingo:'宾果',chilli:'妈妈',bandit:'爸爸',muffin:'Muffin',socks:'Socks',hamster:'仓鼠'};
+  CHAR_LIST.forEach(c=>{
+    html += `<div class="avatar-set-item">
+      <div>${avatarHTML(c,60)} ${nameMap[c]}</div>
+      <div>
+        <input type="file" id="up-${c}" accept="image/*" style="display:none" onchange="uploadAvatar('${c}')">
+        <button class="btn btn-blue" onclick="document.getElementById('up-${c}').click()">上传</button>
+        <button class="btn btn-red" onclick="delAvatar('${c}')">重置</button>
+      </div>
+    </div>`;
+  })
+  document.getElementById('avatarList').innerHTML = html;
+}
+function closeMask(){document.getElementById('mask').style.display = 'none'}
+function uploadAvatar(char){
+  const file = document.getElementById(`up-${char}`).files[0];
+  if(!file)return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    appData.avatar[char] = e.target.result; saveData(); renderAllAvatar(); openMask();
+  }
+  reader.readAsDataURL(file);
+}
+function delAvatar(char){appData.avatar[char]='';saveData();renderAllAvatar();openMask();}
+
+// 侧边栏页面切换
+document.querySelectorAll('.side-item').forEach(item=>{
+  item.onclick = ()=>{
+    document.querySelectorAll('.side-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    const pageId = item.dataset.page;
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(`page-${pageId}`).classList.add('active');
+  }
+})
+
+// 仓鼠养成逻辑
+function getTodayTaskCount(){
+  let cnt=0;
+  if(appData.todayTask.en)cnt++;
+  if(appData.todayTask.skip>=1000)cnt++;
+  if(appData.todayTask.mouth)cnt++;
+  return cnt;
+}
+function refreshHamster(){
+  const cnt = getTodayTaskCount();
+  const feedBtn = document.getElementById('feedBtn');
+  const face = document.getElementById('hamsterFace');
+  const tip = document.getElementById('hamsterTip');
+  document.getElementById('taskWrap').innerHTML = `
+    <div class="task-tag ${appData.todayTask.en?'done':''}">英文打卡30分钟 ${appData.todayTask.en?'✓完成':'未做'}</div>
+    <div class="task-tag ${appData.todayTask.skip>=1000?'done':''}">跳绳1000次 今日${appData.todayTask.skip}次</div>
+    <div class="task-tag ${appData.todayTask.mouth?'done':''}">唇肌训练15分钟 ${appData.todayTask.mouth?'✓完成':'未做'}</div>
+  `;
+  if(cnt===0){face.textContent='😡';tip.textContent='任务一个都没做，仓鼠饿坏了';feedBtn.style.display='none'}
+  else if(cnt<=2){face.textContent='🥺';tip.textContent=`还差${3-cnt}项任务就能投喂`;feedBtn.style.display='none'}
+  else if(cnt===3 && !appData.todayTask.feeded){face.textContent='😋';tip.textContent='全部完成，快来投喂仓鼠！';feedBtn.style.display='block'}
+  else{face.textContent='🤩';tip.textContent='仓鼠吃饱超开心！';feedBtn.style.display='none'}
+}
+function hamsterTalk(){
+  const cnt = getTodayTaskCount();
+  let text = '';
+  if(cnt===0)text='我好饿，快去完成每日任务！';
+  else if(cnt<=2)text=`还差${3-cnt}个任务，我等着吃饭！`;
+  else if(cnt===3 && !appData.todayTask.feeded)text='全部任务做完啦，快喂我吧！';
+  else text='今天吃得饱饱，太幸福啦！';
+  speakText(text);
+}
+function feedHamster(){appData.todayTask.feeded=true;saveData();refreshHamster();}
+
+// 积分规则渲染
+const baseAddRule = [
+  {icon:'📖',name:'英文打卡30分钟',score:2},
+  {icon:'🪀',name:'跳绳100次',score:1},{icon:'🪀',name:'跳绳1000次',score:10},
+  {icon:'👄',name:'唇肌训练15分钟',score:1},{icon:'🧹',name:'主动做家务',score:1},
+  {icon:'📝',name:'独立完成作业',score:1},{icon:'🌙',name:'21点准时睡觉',score:2}
+];
+const baseSubRule = [
+  {icon:'🌙',name:'22点后睡觉',score:2},{icon:'🍚',name:'吃饭超时',score:2},
+  {icon:'🧸',name:'玩具不收拾',score:2},{icon:'📺',name:'看电视超时',score:3},
+  {icon:'🪀',name:'当日未跳绳',score:2},{icon:'🤥',name:'撒谎',score:5}
+];
+function renderRule(){
+  let html = '<h3 style="grid-column:1/-1;margin:8px 0">✅加分规则</h3>';
+  const allAdd = [...baseAddRule,...appData.customAdd];
+  allAdd.forEach(r=>html += `<div class="card"><h4>${r.icon}${r.name}</h4><p>+${r.score}积分</p><button class="btn btn-green" onclick="addScore(${r.score})">打卡加分</button></div>`);
+  html += '<h3 style="grid-column:1/-1;margin:20px 0 8px">❌扣分规则</h3>';
+  const allSub = [...baseSubRule,...appData.customSub];
+  allSub.forEach(r=>html += `<div class="card"><h4>${r.icon}${r.name}</h4><p>-${r.score}积分</p><button class="btn btn-red" onclick="subScore(${r.score})">记录扣分</button></div>`);
+  document.getElementById('ruleWrap').innerHTML = html;
+}
+function addScore(num){appData.score+=num;saveScoreLog(num,true);refreshScoreUI();}
+function subScore(num){appData.score-=num;saveScoreLog(num,false);refreshScoreUI();}
+function saveCustomAdd(){
+  const n = document.getElementById('addCustomName').value.trim();
+  const s = Number(document.getElementById('addCustomNum').value);
+  if(n&&s>0){appData.customAdd.push({icon:'⭐',name:n,score:s});saveData();renderRule();}
+}
+function saveCustomSub(){
+  const n = document.getElementById('subCustomName').value.trim();
+  const s = Number(document.getElementById('subCustomNum').value);
+  if(n&&s>0){appData.customSub.push({icon:'⚠️',name:n,score:s});saveData();renderRule();}
+}
+function refreshScoreUI(){
+  document.getElementById('nowScore').innerText = appData.score;
+  document.getElementById('usedScore').innerText = appData.usedScore;
+}
+
+// 积分商店
+const baseShop = [
+  {icon:'🧸',name:'新玩具',cost:200},{icon:'📺',name:'看电视20分钟',cost:20},
+  {icon:'🎮',name:'游戏时间',cost:50},{icon:'💰',name:'20元零花钱',cost:80}
+];
+function renderShop(){
+  const allShop = [...baseShop,...appData.customShop];
+  let html = '';
+  allShop.forEach(item=>html += `<div class="card"><h4>${item.icon}${item.name}</h4><p>需要${item.cost}积分</p><button class="btn btn-orange" onclick="exchangeItem(${item.cost})">兑换</button></div>`);
+  document.getElementById('shopWrap').innerHTML = html;
+}
+function exchangeItem(cost){
+  if(appData.score >= cost){
+    appData.score -= cost; appData.usedScore += cost;
+    saveScoreLog(cost,false,'积分兑换礼品'); saveData(); refreshScoreUI();
+    alert('兑换成功！');
+  }else alert('积分不足！');
+}
+function saveCustomShop(){
+  const n = document.getElementById('shopCustomName').value.trim();
+  const c = Number(document.getElementById('shopCustomCost').value);
+  if(n&&c>0){appData.customShop.push({icon:'🎁',name:n,cost:c});saveData();renderShop();}
+}
+
+// 积分日志日历
+function saveScoreLog(num,isAdd,note='日常打卡'){
+  const now = new Date();
+  appData.scoreLog.push({date:now.toLocaleDateString(),time:now.toLocaleTimeString(),num:isAdd?num:-num,note});
+  saveData(); renderCalendar();
+}
+function renderCalendar(){
+  const now = new Date();
+  let todaySum=0,weekSum=0,monthSum=0;
+  const dayMap = {};
+  appData.scoreLog.forEach(log=>{
+    if(!dayMap[log.date])dayMap[log.date]=0;
+    dayMap[log.date] += log.num;
+    const logDate = new Date(log.date);
+    if(logDate.toLocaleDateString() === now.toLocaleDateString()) todaySum += log.num;
+    const dayDiff = (now-logDate)/(1000*3600*24);
+    if(dayDiff>=0&&dayDiff<7)weekSum += log.num;
+    if(logDate.getMonth() === now.getMonth())monthSum += log.num;
+  })
+  document.getElementById('statToday').innerText = todaySum;
+  document.getElementById('statWeek').innerText = weekSum;
+  document.getElementById('statMonth').innerText = monthSum;
+  // 绘制日历格子
+  const y = now.getFullYear(),m=now.getMonth();
+  const firstDay = new Date(y,m,1).getDay();
+  const maxDay = new Date(y,m+1,0).getDate();
+  let calHtml = '';
+  for(let i=0;i<firstDay;i++)calHtml += '<span class="calendar-day"></span>';
+  for(let d=1;d<=maxDay;d++){
+    const dateStr = new Date(y,m,d).toLocaleDateString();
+    let cls = 'calendar-day';
+    if(d === now.getDate()) cls += ' active';
+    if(dayMap[dateStr]) cls += ' has-record';
+    calHtml += `<span class="${cls}">${d}</span>`;
+  }
+  document.getElementById('calWrap').innerHTML = calHtml;
+}
+
+// 英文单词库
+const engLib = {
+  fruit:[{em:'🍎',word:'apple',cn:'苹果',sentence:'I eat an apple every day.'},{em:'🍌',word:'banana',cn:'香蕉',sentence:'Banana is yellow.'}],
+  animal:[{em:'🐶',word:'dog',cn:'小狗',sentence:'Dog is cute.'},{em:'🐱',word:'cat',cn:'小猫',sentence:'Cat likes fish.'}],
+  color:[{em:'🔴',word:'red',cn:'红色',sentence:'Apple is red.'}],
+  num:[{em:'1️⃣',word:'one',cn:'一',sentence:'One little bird.'}]
+};
+const catName = {fruit:'水果',animal:'动物',color:'颜色',num:'数字'};
+function renderEngCatTab(){
+  let html = '';
+  Object.keys(engLib).forEach(k=>html += `<div class="tab ${appData.engIndex.cat===k?'active':''}" onclick="switchEngCat('${k}')">${catName[k]}</div>`);
+  document.getElementById('engCatTab').innerHTML = html;
+}
+function switchEngCat(cat){appData.engIndex.cat=cat;appData.engIndex.idx=0;saveData();renderEngCatTab();renderEngPage();}
+function renderEngPage(){
+  const cat = appData.engIndex.cat;
+  const allWords = engLib[cat];
+  const known = appData.engKnown[cat];
+  let list = appData.engMode==='learn' ? allWords.filter(w=>!known.includes(w.word)) : allWords.filter(w=>known.includes(w.word));
+  if(list.length===0){document.getElementById('engCard').innerHTML='<h3 style="text-align:center">暂无单词</h3>';return;}
+  let idx = appData.engIndex.idx;
+  if(idx>=list.length)idx=list.length-1;
+  appData.engIndex.idx=idx;saveData();
+  const item = list[idx];
+  document.getElementById('engCard').innerHTML = `
+    <div style="text-align:center">
+      <div style="font-size:80px">${item.em}</div>
+      <div class="eng-word">${item.word}</div>
+      <p>释义：${item.cn}</p>
+      <p style="color:#666">例句：${item.sentence}</p>
+      <button class="btn btn-green" onclick="speakEng('${item.word}','${item.sentence}')" style="margin-top:10px">🔊英式朗读</button>
+    </div>`;
+}
+function speakEng(word,sen){speakText(word,true);setTimeout(()=>speakText(sen,true),1200);}
+function prevEng(){appData.engIndex.idx = Math.max(0,appData.engIndex.idx-1);saveData();renderEngPage();}
+function nextEng(){
+  const cat = appData.engIndex.cat;
+  const known = appData.engKnown[cat];
+  let list = appData.engMode==='learn' ? engLib[cat].filter(w=>!known.includes(w.word)) : engLib[cat].filter(w=>known.includes(w.word));
+  appData.engIndex.idx = Math.min(list.length-1,appData.engIndex.idx+1);saveData();renderEngPage();
+}
+function knowEng(){
+  const cat = appData.engIndex.cat;
+  const known = appData.engKnown[cat];
+  let list = appData.engMode==='learn' ? engLib[cat].filter(w=>!known.includes(w.word)) : engLib[cat].filter(w=>known.includes(w.word));
+  const word = list[appData.engIndex.idx].word;
+  if(!known.includes(word)){known.push(word);saveData();alert(`已标记${word}为已学会`);renderEngPage();}
+}
+document.querySelectorAll('[data-engmode]').forEach(tab=>{
+  tab.onclick = ()=>{
+    document.querySelectorAll('[data-engmode]').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    appData.engMode = tab.dataset.engmode; appData.engIndex.idx=0;saveData();renderEngPage();
+  }
+})
+
+// 每日学习练习
+const studyTabList = [{key:'char',name:'识字'},{key:'poem',name:'古诗'},{key:'math',name:'算术'},{key:'think',name:'逻辑'},{key:'pinyin',name:'拼音'}];
+function renderStudyTab(){
+  let html = '';
+  studyTabList.forEach(t=>html += `<div class="tab" onclick="switchStudyTab('${t.key}')">${t.name}</div>`);
+  document.getElementById('studyTabBar').innerHTML = html;
+}
+function switchStudyTab(type){
+  let html = '';
+  if(type==='char'){
+    html = `<div class="grid-2">
+      <div class="card"><h4>生字：山 shān</h4><p>组词：大山、高山</p><button class="btn btn-blue" onclick="speakText('山，shān，大山，高山')">跟读朗读</button></div>
+      <div class="card"><h4>生字：水 shuǐ</h4><p>组词：河水、清水</p><button class="btn btn-blue" onclick="speakText('水，shuǐ，河水，清水')">跟读朗读</button></div>
+    </div>`;
+  }else if(type==='poem'){
+    html = `<div class="card">
+      <h4>咏鹅 骆宾王</h4>
+      <p>鹅，鹅，鹅，曲项向天歌。</p>
+      <p>白毛浮绿水，红掌拨清波。</p>
+      <button class="btn btn-blue" onclick="speakText('咏鹅，鹅鹅鹅，曲项向天歌，白毛浮绿水，红掌拨清波')">全文朗读</button>
+    </div>`;
+  }else if(type==='math'){
+    html = `<div class="card">
+      <h4>算术练习题</h4>
+      <div class="math-line">2 + 1 = ?</div>
+      <input class="input-ans" placeholder="填答案">
+      <button class="btn btn-green">提交答案</button>
+    </div>`;
+  }else if(type==='think'){
+    html = `<div class="card"><h4>逻辑小题目</h4><p>3个苹果吃掉1个，剩几个？</p><div class="opt-row"><button class="opt-btn">2</button><button class="opt-btn">4</button></div></div>`;
+  }else if(type==='pinyin'){
+    html = `<div class="card"><h4>拼音认读 a o e</h4><button class="btn btn-blue" onclick="speakText('a 啊，o 喔，e 鹅')">跟读拼音</button></div>`;
+  }
+  document.getElementById('studyContent').innerHTML = html;
+}
+
+// 页面初始化加载
+window.onload = function(){
+  renderAllAvatar();
+  refreshScoreUI();
+  refreshHamster();
+  renderRule();
+  renderShop();
+  renderCalendar();
+  renderStudyTab();
+  switchStudyTab('char');
+  renderEngCatTab();
+  renderEngPage();
+}
+</script>
+</body>
+</html>
