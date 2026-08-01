@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>球球学习工作台 · 复刻版</title>
+    <!-- 防缓存 -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        /* 全局重置 & 柔和风格 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f7f3ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px 16px 40px;
+            background-image: radial-gradient(circle at 10% 20%, rgba(210, 180, 255, 0.15) 0%, transparent 50%);
+        }
+
+        /* 主卡片 — 1:1 复刻布局 */
+        .workbench {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2), 0 8px 24px -8px rgba(90, 40, 180, 0.15);
+            padding: 24px 24px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: all 0.2s ease;
+        }
+
+        /* 头部 — 球球学习工作台 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px 8px;
+            margin-bottom: 28px;
+            padding-bottom: 16px;
+            border-bottom: 2px dashed #d9c9f0;
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-icon {
+            font-size: 2.2rem;
+            line-height: 1;
+            filter: drop-shadow(0 4px 6px rgba(120, 70, 200, 0.2));
+        }
+
+        .title-text {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #3b2b5c;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #5b3a8c, #8b6bc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .badge {
+            background: #e3d5f7;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4f3480;
+            letter-spacing: 0.3px;
+            border: 1px solid #cdb5ed;
+            backdrop-filter: blur(2px);
+            white-space: nowrap;
+        }
+
+        .badge i {
+            font-style: normal;
+            background: #4f3480;
+            color: white;
+            padding: 0 8px;
+            border-radius: 30px;
+            margin-left: 6px;
+        }
+
+        /* 主区域：任务+出题 两列布局 (平板/桌面) */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 24px 20px;
+            margin-top: 8px;
+        }
+
+        /* 左侧：今日任务 */
+        .task-panel {
+            background: rgba(255, 248, 245, 0.6);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 20px 18px 24px;
+            border: 1px solid rgba(215, 195, 240, 0.4);
+            box-shadow: 0 6px 14px rgba(90, 50, 150, 0.06);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #3c2a5c;
+            margin-bottom: 18px;
+            letter-spacing: -0.2px;
+        }
+
+        .panel-title span {
+            background: #b197db;
+            color: white;
+            border-radius: 30px;
+            padding: 0 12px;
+            font-size: 0.8rem;
+            line-height: 1.8;
+            margin-left: auto;
+        }
+
+        .task-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 12px 16px 12px 14px;
+            border-radius: 60px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            border: 1px solid #ede6f7;
+            transition: all 0.15s;
+            cursor: default;
+        }
+
+        .task-item:hover {
+            border-color: #cbb2ec;
+            background: #fcfaff;
+        }
+
+        .task-check {
+            width: 22px;
+            height: 22px;
+            accent-color: #7d5bb8;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .task-label {
+            flex: 1;
+            font-size: 1rem;
+            color: #1f1533;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        .task-label.done {
+            text-decoration: line-through;
+            color: #a58bbd;
+            opacity: 0.7;
+        }
+
+        .task-speak-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 40px;
+            transition: 0.15s;
+            color: #68529b;
+            line-height: 1;
+        }
+
+        .task-speak-btn:hover {
+            background: #e7ddfa;
+            transform: scale(1.05);
+        }
+
+        /* 右侧：随机出题 */
+        .quiz-panel {
+            background: rgba(248, 244, 255, 0.7);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 20px 18px 24px;
+            border: 1px solid rgba(215, 195, 240, 0.4);
+            box-shadow: 0 6px 14px rgba(90, 50, 150, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quiz-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .quiz-header .panel-title {
+            margin-bottom: 0;
+        }
+
+        .quiz-new-btn {
+            background: #7d5bb8;
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 18px;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 10px rgba(100, 60, 180, 0.25);
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #9c7ed0;
+            letter-spacing: 0.3px;
+        }
+
+        .quiz-new-btn:hover {
+            background: #6b4aa3;
+            transform: scale(0.97);
+            box-shadow: 0 2px 6px rgba(100, 60, 180, 0.3);
+        }
+
+        .quiz-new-btn:active {
+            transform: scale(0.94);
+        }
+
+        .quiz-card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 18px;
+            flex: 1;
+            border: 1px solid #e2d5f2;
+            box-shadow: inset 0 1px 4px rgba(255,255,255,0.8);
+            display: flex;
+            flex-direction: column;
+            min-height: 140px;
+        }
+
+        .quiz-question {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #291f3f;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .quiz-answer-area {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px dashed #ddd0ed;
+            padding-top: 16px;
+        }
+
+        .quiz-answer {
+            font-size: 1rem;
+            background: #f3edfe;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: #3f2a62;
+            font-weight: 500;
+            flex: 1;
+            min-width: 100px;
+            border: 1px solid #d8c6f0;
+        }
+
+        .quiz-speak-btn {
+            background: #e2d4f7;
+            border: none;
+            border-radius: 60px;
+            padding: 8px 16px;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #3e2863;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid #cbb2ec;
+            white-space: nowrap;
+        }
+
+        .quiz-speak-btn:hover {
+            background: #d4c1f0;
+            transform: scale(0.97);
+        }
+
+        .quiz-speak-btn i {
+            font-style: normal;
+            font-size: 1.1rem;
+        }
+
+        /* 底部小标记 */
+        .footer-note {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #a48bc2;
+            letter-spacing: 0.2px;
+            border-top: 1px solid #ddd0ed;
+            padding-top: 18px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-note span {
+            background: #e8def7;
+            padding: 4px 14px;
+            border-radius: 40px;
+        }
+
+        /* 响应式 — 手机 */
+        @media (max-width: 600px) {
+            body { padding: 12px 10px 30px; }
+            .workbench { padding: 18px 14px 24px; border-radius: 32px; }
+            .title-text { font-size: 1.5rem; }
+            .title-icon { font-size: 1.9rem; }
+            .badge { font-size: 0.7rem; padding: 4px 12px; }
+            .dashboard { grid-template-columns: 1fr; gap: 24px; }
+            .task-panel, .quiz-panel { padding: 16px 14px 20px; }
+            .quiz-question { font-size: 1.1rem; }
+            .quiz-answer { font-size: 0.9rem; }
+            .task-item { padding: 10px 12px; }
+        }
+
+        @media (max-width: 400px) {
+            .title-group { gap: 6px; }
+            .title-text { font-size: 1.2rem; }
+            .quiz-new-btn { font-size: 0.75rem; padding: 6px 14px; }
+        }
+
+        /* 平板适配 */
+        @media (min-width: 601px) and (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr 1fr; gap: 18px; }
+        }
+
+        /* 按钮、交互 */
+        button, .task-check { touch-action: manipulation; }
+
+        /* 空状态 */
+        .empty-hint {
+            color: #b7a3d2;
+            font-style: italic;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="workbench" role="main">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="title-group">
+                <span class="title-icon">🧸</span>
+                <h1 class="title-text">球球学习工作台</h1>
+            </div>
+            <div class="badge">
+                ⚡ 最新版 <i>v2</i>
+            </div>
+        </header>
+
+        <!-- 主面板 -->
+        <div class="dashboard">
+            <!-- 左侧：今日任务 -->
+            <section class="task-panel" aria-label="今日任务">
+                <div class="panel-title">
+                    📋 今日任务
+                    <span id="taskDateBadge">今日</span>
+                </div>
+                <ul class="task-list" id="taskList">
+                    <!-- 动态由js渲染 -->
+                </ul>
+                <div style="margin-top: 12px; font-size:0.8rem; color:#8067aa; opacity:0.7; display: flex; gap: 12px; justify-content: flex-end;">
+                    <span>🔄 每日自动重置</span>
+                </div>
+            </section>
+
+            <!-- 右侧：随机出题 -->
+            <section class="quiz-panel" aria-label="随机出题">
+                <div class="quiz-header">
+                    <div class="panel-title" style="margin-bottom:0;">
+                        🧠 随机出题
+                    </div>
+                    <button class="quiz-new-btn" id="newQuizBtn" aria-label="随机新题">✨ 换一题</button>
+                </div>
+                <div class="quiz-card" id="quizCard">
+                    <div class="quiz-question" id="quizQuestion">点击“换一题”开始</div>
+                    <div class="quiz-answer-area">
+                        <div class="quiz-answer" id="quizAnswer">🤔 思考中…</div>
+                        <button class="quiz-speak-btn" id="quizSpeakBtn" aria-label="朗读题目和答案">
+                            <i>🔊</i> 朗读
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer-note">
+            <span>🧑‍🎓 数据保存在本地</span>
+            <span>🗣️ 中英文语音朗读</span>
+            <span>📱 手机 / 平板适配</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---------- 本地存储 key ----------
+            const STORAGE_KEY = 'qiqiu_workbench_data';
+
+            // ---------- 默认任务 (每日重置) ----------
+            const DEFAULT_TASKS = [
+                { id: 't1', label: '📖 阅读 20 分钟', done: false },
+                { id: 't2', label: '✍️ 写学习笔记', done: false },
+                { id: 't3', label: '🧮 数学思维练习', done: false },
+                { id: 't4', label: '🌍 英语单词 10 个', done: false }
+            ];
+
+            // ---------- 题库 (中英混合) ----------
+            const QUIZ_BANK = [
+                { question: '🌞 太阳从哪边升起？', answer: '东边 / East' },
+                { question: '🐱 猫的英文是什么？', answer: 'Cat' },
+                { question: '🧮 8 + 7 = ?', answer: '15' },
+                { question: '🍎 苹果的英文是？', answer: 'Apple' },
+                { question: '🌈 彩虹有几种颜色？', answer: '7种 / Seven' },
+                { question: '🐶 小狗的英文是？', answer: 'Dog' },
+                { question: '🇨🇳 中国的首都是？', answer: '北京 / Beijing' },
+                { question: '📏 1 米等于多少厘米？', answer: '100 厘米' },
+                { question: '🌍 地球是行星吗？', answer: '是的 / Yes' },
+                { question: '🎵 音乐用英语怎么说？', answer: 'Music' }
+            ];
+
+            // ---------- 状态 ----------
+            let tasks = [];
+            let currentQuiz = null; // { question, answer }
+
+            // DOM 元素
+            const taskListEl = document.getElementById('taskList');
+            const taskDateBadge = document.getElementById('taskDateBadge');
+            const quizQuestionEl = document.getElementById('quizQuestion');
+            const quizAnswerEl = document.getElementById('quizAnswer');
+            const newQuizBtn = document.getElementById('newQuizBtn');
+            const quizSpeakBtn = document.getElementById('quizSpeakBtn');
+
+            // ---------- 辅助: 获取今日日期字符串 YYYY-MM-DD ----------
+            function getTodayStr() {
+                const d = new Date();
+                return d.getFullYear() + '-' +
+                       String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(d.getDate()).padStart(2, '0');
+            }
+
+            // ---------- 加载/初始化数据 (每日重置) ----------
+            function loadData() {
+                const today = getTodayStr();
+                let stored = null;
+                try {
+                    const raw = localStorage.getItem(STORAGE_KEY);
+                    if (raw) stored = JSON.parse(raw);
+                } catch (_) { /* ignore */ }
+
+                // 如果存储存在且日期是今天，使用存储的数据；否则重置
+                if (stored && stored.date === today) {
+                    tasks = stored.tasks || [];
+                    // 保证每个任务有 id 和 done
+                    tasks = tasks.map(t => ({
+                        id: t.id || 't_' + Math.random().toString(36).substr(2, 6),
+                        label: t.label || '任务',
+                        done: t.done || false
+                    }));
+                } else {
+                    // 重置为默认任务 (深拷贝)
+                    tasks = DEFAULT_TASKS.map(t => ({ ...t }));
+                    saveData(today);
+                }
+
+                // 更新日期徽章
+                taskDateBadge.textContent = today;
+
+                // 随机初始化一道题 (若存储中没有quiz，则随机)
+                if (stored && stored.date === today && stored.quiz) {
+                    currentQuiz = stored.quiz;
+                } else {
+                    pickRandomQuiz();
+                }
+                // 保存quiz到storage (但保存由pickRandomQuiz内部调用saveData)
+                // 但为了确保一致，若从存储读取了quiz，要显示；否则pickRandomQuiz已处理
+                if (stored && stored.date === today && stored.quiz) {
+                    // 确保currentQuiz已赋值
+                } else {
+                    // 已经pickRandomQuiz
+                }
+                // 如果currentQuiz为空则补一个
+                if (!currentQuiz) pickRandomQuiz();
+            }
+
+            // ---------- 保存数据 (包含日期、tasks、quiz) ----------
+            function saveData(dateStr) {
+                const data = {
+                    date: dateStr || getTodayStr(),
+                    tasks: tasks,
+                    quiz: currentQuiz
+                };
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                } catch (_) { /* 忽略存储错误 */ }
+            }
+
+            // ---------- 渲染任务列表 ----------
+            function renderTasks() {
+                if (!taskListEl) return;
+                if (!tasks || tasks.length === 0) {
+                    taskListEl.innerHTML = `<li class="task-item" style="justify-content:center;color:#9a84bc;">🎉 今天没有任务，休息一下吧</li>`;
+                    return;
+                }
+
+                let html = '';
+                tasks.forEach((task, index) => {
+                    const doneClass = task.done ? 'done' : '';
+                    const checkedAttr = task.done ? 'checked' : '';
+                    // 转义label防止XSS（简单处理）
+                    const safeLabel = task.label.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    html += `
+                        <li class="task-item" data-task-id="${task.id}">
+                            <input type="checkbox" class="task-check" ${checkedAttr} data-index="${index}" aria-label="标记任务完成">
+                            <span class="task-label ${doneClass}">${safeLabel}</span>
+                            <button class="task-speak-btn" data-index="${index}" aria-label="朗读任务内容">🔊</button>
+                        </li>
+                    `;
+                });
+                taskListEl.innerHTML = html;
+
+                // 绑定 checkbox 事件
+                document.querySelectorAll('.task-check').forEach(cb => {
+                    cb.addEventListener('change', function(e) {
+                        const idx = parseInt(this.dataset.index, 10);
+                        if (!isNaN(idx) && tasks[idx]) {
+                            tasks[idx].done = this.checked;
+                            // 更新label样式
+                            const parentLi = this.closest('.task-item');
+                            if (parentLi) {
+                                const labelSpan = parentLi.querySelector('.task-label');
+                                if (labelSpan) {
+                                    if (this.checked) labelSpan.classList.add('done');
+                                    else labelSpan.classList.remove('done');
+                                }
+                            }
+                            saveData(getTodayStr());
+                        }
+                    });
+                });
+
+                // 绑定朗读按钮 (每个任务)
+                document.querySelectorAll('.task-speak-btn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const idx = parseInt(this.dataset.index, 10);
+                        if (!isNaN(idx) && tasks[idx]) {
+                            const text = tasks[idx].label;
+                            speakText(text, 'zh-CN');
+                        }
+                    });
+                });
+            }
+
+            // ---------- 随机选题 ----------
+            function pickRandomQuiz() {
+                if (!QUIZ_BANK || QUIZ_BANK.length === 0) {
+                    currentQuiz = { question: '暂无题目', answer: '请添加题库' };
+                } else {
+                    const randomIndex = Math.floor(Math.random() * QUIZ_BANK.length);
+                    currentQuiz = { ...QUIZ_BANK[randomIndex] };
+                }
+                renderQuiz();
+                saveData(getTodayStr());
+            }
+
+            // ---------- 渲染当前题目 ----------
+            function renderQuiz() {
+                if (!currentQuiz) {
+                    quizQuestionEl.textContent = '🧩 点击换一题';
+                    quizAnswerEl.textContent = '✨ 准备就绪';
+                    return;
+                }
+                quizQuestionEl.textContent = currentQuiz.question || '题目加载中';
+                quizAnswerEl.textContent = currentQuiz.answer || '答案加载中';
+            }
+
+            // ---------- 语音朗读 (Web Speech API) ----------
+            function speakText(text, lang = 'zh-CN') {
+                if (!window.speechSynthesis) {
+                    alert('您的浏览器不支持语音朗读，请使用现代浏览器。');
+                    return;
+                }
+                // 取消任何正在进行的语音
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = 0.9;
+                utterance.pitch = 1.1;
+                utterance.volume = 1;
+
+                // 尝试选择中文或英文语音
+                const voices = window.speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    const preferred = voices.find(v => v.lang.startsWith(lang.split('-')[0]));
+                    if (preferred) utterance.voice = preferred;
+                }
+                window.speechSynthesis.speak(utterance);
+            }
+
+            // ---------- 朗读当前题目 (中英文混合) ----------
+            function speakCurrentQuiz() {
+                if (!currentQuiz) {
+                    speakText('请先点击换一题', 'zh-CN');
+                    return;
+                }
+                const q = currentQuiz.question || '';
+                const a = currentQuiz.answer || '';
+                // 组合文本：题目 + 答案 (用简短分隔)
+                const fullText = `题目：${q}。 答案：${a}`;
+                // 根据内容自动选择语言：检测是否包含中文
+                const hasChinese = /[\u4e00-\u9fa5]/.test(fullText);
+                const lang = hasChinese ? 'zh-CN' : 'en-US';
+                speakText(fullText, lang);
+            }
+
+            // ---------- 初始化加载语音列表 (某些浏览器需要) ----------
+            function initSpeech() {
+                if (window.speechSynthesis) {
+                    // 预加载语音列表
+                    window.speechSynthesis.getVoices();
+                    window.speechSynthesis.onvoiceschanged = () => {
+                        window.speechSynthesis.getVoices();
+                    };
+                }
+            }
+
+            // ---------- 事件绑定 ----------
+            function bindEvents() {
+                // 新题按钮
+                newQuizBtn.addEventListener('click', function() {
+                    pickRandomQuiz();
+                });
+
+                // 朗读题目按钮
+                quizSpeakBtn.addEventListener('click', function() {
+                    speakCurrentQuiz();
+                });
+            }
+
+            // ---------- 启动 ----------
+            function init() {
+                loadData();
+                renderTasks();
+                renderQuiz();
+                bindEvents();
+                initSpeech();
+                // 每天第一次打开时强制刷新日期 (但数据已经按日期处理)
+                // 额外：如果跨天，会由loadData重置
+                // 可以用定时器或者焦点事件，但已经足够
+                // 当页面可见时，检查日期是否变更（简单）
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden) {
+                        // 重新加载数据（如果日期变了会自动重置）
+                        const oldTasks = tasks.map(t => t.id);
+                        loadData();
+                        // 如果任务列表变化则重新渲染
+                        const newTasksIds = tasks.map(t => t.id);
+                        if (oldTasks.join(',') !== newTasksIds.join(',')) {
+                            renderTasks();
+                        } else {
+                            // 可能只有 done 状态变化，保留渲染
+                            renderTasks();
+                        }
+                        renderQuiz();
+                    }
+                });
+            }
+
+            // DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
+</body>
+</html>
